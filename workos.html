@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WorkOS</title>
+<script src="https://accounts.google.com/gsi/client" onload="onGISLoad()" async defer></script>
+<style>
+:root {
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --border: #e4e7ec;
+  --text: #111827;
+  --text-2: #6b7280;
+  --text-3: #9ca3af;
+  --primary: #2563eb;
+  --primary-bg: #eff6ff;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+  /* type colors */
+  --c-todo: #2563eb;
+  --c-question: #d97706;
+  --c-memo: #6b7280;
+  --c-meeting: #059669;
+  --c-decision: #7c3aed;
+  --c-followup: #dc2626;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ────────────────────────────────── */
+#header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo { font-size: 19px; font-weight: 800; letter-spacing: -0.5px; }
+.logo span { color: var(--primary); }
+#sync-status {
+  font-size: 12px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: default;
+}
+#sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+}
+#sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
+#sync-dot.error   { background: #ef4444; }
+#sync-dot.offline { background: #9ca3af; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.header-right { display: flex; gap: 8px; align-items: center; }
+#btn-signin-small {
+  font-size: 13px; font-weight: 600; color: var(--primary);
+  background: var(--primary-bg); border: none; border-radius: 8px;
+  padding: 6px 12px; cursor: pointer;
+}
+#btn-add {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--primary); color: #fff;
+  border: none; cursor: pointer; font-size: 22px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 300;
+}
+#btn-add:active { background: #1d4ed8; }
+
+/* ── TABS ──────────────────────────────────── */
+#tabs {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#tabs::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 11px 16px;
+  font-size: 14px; font-weight: 500;
+  color: var(--text-2);
+  border-bottom: 2px solid transparent;
+  cursor: pointer; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
+  transition: color .15s;
+}
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-badge {
+  font-size: 11px; font-weight: 700;
+  background: #e5e7eb; color: #6b7280;
+  padding: 1px 6px; border-radius: 10px;
+  min-width: 18px; text-align: center;
+}
+.tab.active .tab-badge { background: var(--primary-bg); color: var(--primary); }
+
+/* ── CONTENT ───────────────────────────────── */
+#content {
+  padding: 14px 14px 40px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* ── SECTION HEADER ────────────────────────── */
+.sec-head {
+  font-size: 11px; font-weight: 700; letter-spacing: .6px;
+  text-transform: uppercase; color: var(--text-3);
+  margin: 18px 0 8px 2px;
+}
+.sec-head:first-child { margin-top: 4px; }
+
+/* ── ITEM CARD ─────────────────────────────── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 7px;
+  border-left: 4px solid #e4e7ec;
+  overflow: hidden;
+}
+.card[data-type="TODO"]      { border-left-color: var(--c-todo); }
+.card[data-type="QUESTION"]  { border-left-color: var(--c-question); }
+.card[data-type="MEMO"]      { border-left-color: var(--c-memo); }
+.card[data-type="MEETING"]   { border-left-color: var(--c-meeting); }
+.card[data-type="DECISION"]  { border-left-color: var(--c-decision); }
+.card[data-type="FOLLOW-UP"] { border-left-color: var(--c-followup); }
+.card.done    { opacity: .48; }
+.card.overdue { background: #fff5f5; border-left-color: #dc2626 !important; }
+
+.card-main {
+  padding: 10px 10px 10px 12px;
+  display: flex; align-items: flex-start; gap: 9px;
+}
+.card-check {
+  width: 20px; height: 20px; border: 2px solid #d1d5db;
+  border-radius: 50%; cursor: pointer; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.card-check:hover { border-color: var(--primary); }
+.card.done .card-check { background: var(--primary); border-color: var(--primary); }
+.card.done .card-check::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; }
+
+.card-body { flex: 1; min-width: 0; }
+.card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 3px; }
+
+.type-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: .3px;
+  padding: 2px 6px; border-radius: 4px; text-transform: uppercase;
+  white-space: nowrap;
+}
+.type-badge-TODO      { background: #eff6ff; color: var(--c-todo); }
+.type-badge-QUESTION  { background: #fffbeb; color: var(--c-question); }
+.type-badge-MEMO      { background: #f9fafb; color: var(--c-memo); }
+.type-badge-MEETING   { background: #ecfdf5; color: var(--c-meeting); }
+.type-badge-DECISION  { background: #f5f3ff; color: var(--c-decision); }
+.type-badge-FOLLOW-UP { background: #fef2f2; color: var(--c-followup); }
+
+.dl-badge {
+  font-size: 11px; font-weight: 500;
+  padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+}
+.dl-overdue { background: #fef2f2; color: #dc2626; }
+.dl-today   { background: #fffbeb; color: #d97706; }
+.dl-soon    { background: #eff6ff; color: #2563eb; }
+.dl-later   { background: #f9fafb; color: #6b7280; }
+
+.card-title {
+  font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--text);
+  word-break: break-word;
+}
+.card.done .card-title { text-decoration: line-through; color: var(--text-2); }
+
+.card-body-text {
+  font-size: 13px; color: var(--text-2); line-height: 1.55;
+  margin-top: 5px; display: none; white-space: pre-wrap; word-break: break-word;
+}
+.card-body-text.show { display: block; }
+
+.card-actions { display: flex; gap: 1px; flex-shrink: 0; margin-left: 4px; }
+.card-btn {
+  width: 30px; height: 30px;
+  border: none; background: transparent; cursor: pointer;
+  border-radius: 7px; color: var(--text-3); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .1s, color .1s;
+}
+.card-btn:hover { background: var(--bg); color: var(--text-2); }
+
+/* ── EMPTY STATE ───────────────────────────── */
+.empty {
+  text-align: center; padding: 60px 20px 40px;
+  color: var(--text-2);
+}
+.empty-icon { font-size: 38px; margin-bottom: 10px; }
+.empty h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.empty p { font-size: 14px; }
+
+/* ── SUBTASKS ──────────────────────────────── */
+.subtasks { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 7px; }
+.subtask-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 3px 0;
+}
+.subtask-check {
+  width: 16px; height: 16px; border: 1.5px solid #d1d5db;
+  border-radius: 4px; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s;
+}
+.subtask-check:hover { border-color: var(--primary); }
+.subtask-row.done .subtask-check { background: var(--primary); border-color: var(--primary); }
+.subtask-row.done .subtask-check::after { content: '✓'; color: #fff; font-size: 9px; font-weight: 700; }
+.subtask-title { font-size: 13px; color: var(--text-2); line-height: 1.4; }
+.subtask-row.done .subtask-title { text-decoration: line-through; color: var(--text-3); }
+.subtask-add-row { padding: 3px 0; }
+.subtask-add-input {
+  width: 100%; border: none; outline: none;
+  font-size: 13px; color: var(--text-2); background: transparent;
+  font-family: inherit; padding: 1px 0;
+}
+.subtask-add-input::placeholder { color: var(--text-3); }
+
+/* ── SHOW DONE TOGGLE ──────────────────────── */
+#show-done-toggle {
+  text-align: center; padding: 16px 8px 4px;
+  font-size: 13px; color: var(--text-3); cursor: pointer;
+}
+#show-done-toggle:hover { color: var(--text-2); }
+
+/* ── MODAL OVERLAY ─────────────────────────── */
+#overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.4); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+#overlay.open { display: flex; }
+@media (min-width: 600px) {
+  #overlay { align-items: center; }
+}
+
+/* ── MODAL ─────────────────────────────────── */
+#modal {
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 16px 18px 28px;
+  width: 100%; max-height: 92vh; overflow-y: auto;
+  animation: slideUp .2s ease-out;
+}
+@media (min-width: 600px) {
+  #modal { border-radius: var(--radius); max-width: 460px; max-height: 85vh; }
+}
+@keyframes slideUp { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.modal-handle {
+  width: 36px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 0 auto 18px;
+}
+@media (min-width: 600px) { .modal-handle { display: none; } }
+
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+
+/* Type selector */
+.type-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 7px;
+  margin-bottom: 18px;
+}
+.type-opt {
+  padding: 9px 6px;
+  border: 2px solid var(--border); border-radius: 10px;
+  cursor: pointer; text-align: center;
+  transition: all .12s;
+}
+.type-opt-icon { font-size: 17px; margin-bottom: 2px; }
+.type-opt-name { font-size: 10px; font-weight: 700; color: var(--text-2); letter-spacing: .2px; }
+
+.type-opt.sel[data-t="TODO"]      { border-color: var(--c-todo);     background: #eff6ff; }
+.type-opt.sel[data-t="QUESTION"]  { border-color: var(--c-question); background: #fffbeb; }
+.type-opt.sel[data-t="MEMO"]      { border-color: var(--c-memo);     background: #f9fafb; }
+.type-opt.sel[data-t="MEETING"]   { border-color: var(--c-meeting);  background: #ecfdf5; }
+.type-opt.sel[data-t="DECISION"]  { border-color: var(--c-decision); background: #f5f3ff; }
+.type-opt.sel[data-t="FOLLOW-UP"] { border-color: var(--c-followup); background: #fef2f2; }
+
+/* Form */
+.form-row { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 5px; }
+.form-input, .form-textarea {
+  width: 100%; padding: 9px 11px;
+  border: 1.5px solid var(--border); border-radius: 9px;
+  font-size: 15px; font-family: inherit; color: var(--text);
+  background: var(--surface); outline: none;
+  transition: border-color .15s;
+}
+.form-input:focus, .form-textarea:focus { border-color: var(--primary); }
+.form-textarea { resize: vertical; min-height: 72px; }
+
+/* Deadline pills */
+.dl-pills { display: flex; gap: 7px; flex-wrap: wrap; }
+.dl-pill {
+  padding: 5px 12px; border: 1.5px solid var(--border);
+  border-radius: 20px; font-size: 13px; font-weight: 500;
+  color: var(--text-2); cursor: pointer; white-space: nowrap;
+  transition: all .12s; background: var(--surface);
+}
+.dl-pill.sel { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+.dl-pill-date {
+  padding: 4px 10px; border: 1.5px solid var(--border);
+  border-radius: 20px; font-size: 13px; font-weight: 500;
+  color: var(--text-2); cursor: pointer; background: var(--surface);
+  outline: none; font-family: inherit;
+  transition: border-color .12s;
+}
+.dl-pill-date:focus { border-color: var(--primary); }
+
+/* Buttons */
+.btn-save {
+  width: 100%; padding: 13px;
+  background: var(--primary); color: #fff;
+  border: none; border-radius: 11px;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: background .12s;
+  margin-top: 4px;
+}
+.btn-save:hover { background: #1d4ed8; }
+.btn-save:active { background: #1e40af; }
+.btn-del {
+  width: 100%; padding: 12px;
+  background: transparent; color: #dc2626;
+  border: 1.5px solid #fecaca; border-radius: 11px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  font-family: inherit; transition: background .12s; margin-top: 8px;
+}
+.btn-del:hover { background: #fef2f2; }
+
+/* ── SIGN-IN SCREEN ────────────────────────── */
+#signin-screen {
+  display: none; position: fixed; inset: 0;
+  background: var(--bg); z-index: 300;
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 24px;
+}
+#signin-screen.on { display: flex; }
+.signin-logo { font-size: 44px; font-weight: 800; letter-spacing: -2px; margin-bottom: 6px; }
+.signin-logo span { color: var(--primary); }
+.signin-sub { font-size: 15px; color: var(--text-2); margin-bottom: 36px; text-align: center; line-height: 1.4; }
+.signin-card {
+  background: var(--surface); border-radius: 16px;
+  padding: 26px 24px; width: 100%; max-width: 360px;
+  box-shadow: var(--shadow-lg);
+}
+.signin-card h2 { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+.setup-info {
+  font-size: 13px; color: var(--text-2); line-height: 1.6;
+  background: var(--bg); padding: 12px; border-radius: 8px; margin-bottom: 14px;
+}
+.setup-info a { color: var(--primary); text-decoration: none; }
+.setup-info a:hover { text-decoration: underline; }
+.setup-sep { text-align: center; font-size: 12px; color: var(--text-3); margin: 12px 0; }
+.btn-google {
+  width: 100%; padding: 11px 16px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 14px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 10px; color: var(--text);
+  font-family: inherit; transition: background .12s;
+}
+.btn-google:hover { background: var(--bg); }
+.btn-google svg { flex-shrink: 0; }
+
+/* ── TOAST ─────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: #1a1a1a; color: #fff;
+  padding: 9px 18px; border-radius: 20px;
+  font-size: 14px; z-index: 500;
+  transition: transform .2s; white-space: nowrap;
+  pointer-events: auto;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── LOADING ───────────────────────────────── */
+#loading {
+  display: none; position: fixed; inset: 0;
+  background: rgba(255,255,255,.75); z-index: 400;
+  align-items: center; justify-content: center;
+}
+#loading.on { display: flex; }
+.spinner {
+  width: 34px; height: 34px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ────────────────────────────── -->
+<div id="header">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo">Work<span>OS</span></div>
+    <div id="sync-status">
+      <div id="sync-dot" class="offline"></div>
+      <span id="sync-text">Ei yhteyttä</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <button id="btn-signin-small" onclick="startSignIn()" style="display:none">Kirjaudu</button>
+    <div id="user-menu" style="display:none;position:relative">
+      <div id="user-avatar" onclick="toggleUserMenu()"
+           style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;
+                  font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;
+                  cursor:pointer;user-select:none" title="Tili">T</div>
+      <div id="user-dropdown" style="display:none;position:absolute;right:0;top:40px;
+           background:var(--surface);border:1px solid var(--border);border-radius:10px;
+           box-shadow:var(--shadow-lg);min-width:160px;overflow:hidden;z-index:150">
+        <div id="user-email" style="padding:10px 14px;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--border)"></div>
+        <div onclick="signOut()" style="padding:10px 14px;font-size:14px;cursor:pointer;color:#dc2626"
+             onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
+          Vaihda tili / kirjaudu ulos
+        </div>
+      </div>
+    </div>
+    <button id="btn-fetch" onclick="fetchEmails()" title="Hae sähköpostit"
+            style="display:none;padding:0 12px;height:36px;border-radius:10px;border:1.5px solid var(--border);
+                   background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;color:var(--text-2);
+                   white-space:nowrap">✉ Hae</button>
+    <button id="btn-add" onclick="openAdd()" title="Uusi merkintä">+</button>
+  </div>
+</div>
+
+<!-- ── TABS ──────────────────────────────── -->
+<div id="tabs"></div>
+
+<!-- ── CONTENT ───────────────────────────── -->
+<div id="content"></div>
+
+<!-- ── MODAL ─────────────────────────────── -->
+<div id="overlay" onclick="overlayClick(event)">
+  <div id="modal"></div>
+</div>
+
+<!-- ── SIGN-IN SCREEN ────────────────────── -->
+<div id="signin-screen">
+  <div class="signin-logo">Work<span>OS</span></div>
+  <div class="signin-sub">Henkilökohtainen työnhallinta<br>Google Driven päälle</div>
+  <div class="signin-card">
+    <h2>Kirjaudu sisään</h2>
+    <div class="setup-info" id="setup-info">
+      Syötä Google OAuth Client ID alla olevaan kenttään. Saat sen
+      <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Consolesta</a>
+      (OAuth 2.0 Web Client).<br><br>
+      Lisää <strong>Authorized JavaScript origin</strong> -kohtaan osoite, josta avaat tämän tiedoston
+      (esim. <code>http://localhost:8080</code>).
+    </div>
+    <div class="form-row">
+      <label class="form-label">Google Client ID</label>
+      <input id="client-id-input" class="form-input" type="text"
+             placeholder="xxxx.apps.googleusercontent.com"
+             value="">
+    </div>
+    <div class="setup-sep">─── tai jos sinulla on jo Client ID ───</div>
+    <button class="btn-google" onclick="handleSignInClick()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+      Kirjaudu Google-tilillä
+    </button>
+  </div>
+</div>
+
+<!-- ── TOAST ─────────────────────────────── -->
+<div id="toast"></div>
+
+<!-- ── LOADING ───────────────────────────── -->
+<div id="loading"><div class="spinner"></div></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.modify';
+const FOLDER_NAME = 'WorkOS';
+const FILE_NAME = 'workos_data.json';
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const S = {
+  items: [],
+  tab: 'today',
+  showDone: false,
+  modal: { open: false, item: null, mode: 'add', type: 'TODO', deadline: null },
+  auth: { ok: false, token: null, exp: 0 },
+  drive: { folderId: null, fileId: null },
+  sync: { status: 'offline' }, // offline|ok|syncing|error
+  clientId: localStorage.getItem('wos_cid') || '788024697261-kuae7lcktlhklmjak0tc7tie4orebidu.apps.googleusercontent.com'
+};
+
+let tokenClient = null;
+let gisReady = false;
+let pendingSignIn = false;
+
+// ═══════════════════════════════════════════════
+// DATE HELPERS
+// ═══════════════════════════════════════════════
+function today() {
+  const d = new Date(); d.setHours(0,0,0,0); return d;
+}
+function tomorrow() {
+  const d = today(); d.setDate(d.getDate()+1); return d;
+}
+function weekEnd() {
+  const d = today();
+  const day = d.getDay(); // 0=Sun
+  d.setDate(d.getDate() + (day === 0 ? 0 : 7 - day));
+  return d;
+}
+function parseDate(s) {
+  if (!s) return null;
+  const d = new Date(s); d.setHours(0,0,0,0); return d;
+}
+function fmt(d) {
+  if (!d) return '';
+  return d.toISOString().split('T')[0];
+}
+function isSameDay(a, b) { return a && b && a.getTime() === b.getTime(); }
+
+function deadlineBadge(deadline) {
+  if (!deadline) return null;
+  const t = today(), dl = parseDate(deadline);
+  if (dl < t) {
+    const days = Math.floor((t - dl) / 86400000);
+    return { cls: 'dl-overdue', text: days === 1 ? '1 pv myöhässä' : `${days} pv myöhässä` };
+  }
+  if (isSameDay(dl, t))     return { cls: 'dl-today', text: 'Tänään' };
+  if (isSameDay(dl, tomorrow())) return { cls: 'dl-soon',  text: 'Huomenna' };
+  if (dl <= weekEnd())      return { cls: 'dl-soon',  text: dl.toLocaleDateString('fi-FI', {weekday:'short', day:'numeric', month:'numeric'}) };
+  return { cls: 'dl-later', text: dl.toLocaleDateString('fi-FI', {day:'numeric', month:'numeric', year:'numeric'}) };
+}
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+function onGISLoad() {
+  gisReady = true;
+  const cid = S.clientId;
+  if (cid) {
+    initTokenClient(cid);
+    if (pendingSignIn) { pendingSignIn = false; tokenClient.requestAccessToken({prompt:''}); }
+  }
+}
+
+function initTokenClient(cid) {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: cid,
+    scope: SCOPE,
+    callback: onToken,
+    error_callback: (e) => { console.warn('GIS error', e); showSignIn(); }
+  });
+}
+
+function onToken(resp) {
+  if (resp.error) { showSignIn(); return; }
+  S.auth.token = resp.access_token;
+  S.auth.exp = Date.now() + resp.expires_in * 1000;
+  S.auth.ok = true;
+  document.getElementById('btn-signin-small').style.display = 'none';
+  initDrive();
+}
+
+function startSignIn() {
+  document.getElementById('signin-screen').classList.add('on');
+}
+
+function handleSignInClick() {
+  const cid = document.getElementById('client-id-input').value.trim();
+  if (cid) {
+    S.clientId = cid;
+    localStorage.setItem('wos_cid', cid);
+  }
+  if (!S.clientId) { showToast('Syötä Client ID ensin'); return; }
+  if (!gisReady) { pendingSignIn = true; return; }
+  initTokenClient(S.clientId);
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function showSignIn() {
+  document.getElementById('signin-screen').classList.add('on');
+  document.getElementById('btn-signin-small').style.display = 'block';
+  if (S.clientId) document.getElementById('client-id-input').value = S.clientId;
+}
+
+function hideSignIn() {
+  document.getElementById('signin-screen').classList.remove('on');
+  document.getElementById('btn-signin-small').style.display = 'none';
+  document.getElementById('user-menu').style.display = 'flex';
+  document.getElementById('btn-fetch').style.display = 'flex';
+  document.getElementById('btn-fetch').style.alignItems = 'center';
+}
+
+function toggleUserMenu() {
+  const dd = document.getElementById('user-dropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+
+function signOut() {
+  if (S.auth.token) {
+    google.accounts.oauth2.revoke(S.auth.token, () => {});
+  }
+  // Clear all Drive state so next sign-in starts fresh
+  localStorage.removeItem('wos_fid');
+  localStorage.removeItem('wos_fileid');
+  localStorage.removeItem('wos_cache');
+  S.auth = { ok: false, token: null, exp: 0 };
+  S.drive = { folderId: null, fileId: null };
+  S.items = [];
+  document.getElementById('user-menu').style.display = 'none';
+  document.getElementById('user-dropdown').style.display = 'none';
+  setSyncStatus('offline');
+  render();
+  showSignIn();
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  if (!document.getElementById('user-menu')?.contains(e.target)) {
+    const dd = document.getElementById('user-dropdown');
+    if (dd) dd.style.display = 'none';
+  }
+});
+
+// ═══════════════════════════════════════════════
+// DRIVE API
+// ═══════════════════════════════════════════════
+async function dGet(url) {
+  return fetch(url, { headers: { Authorization: 'Bearer ' + S.auth.token } });
+}
+async function dPost(url, body, ct = 'application/json') {
+  return fetch(url, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + S.auth.token, 'Content-Type': ct },
+    body: typeof body === 'string' ? body : JSON.stringify(body)
+  });
+}
+async function dPatch(url, body, ct = 'application/json') {
+  return fetch(url, {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + S.auth.token, 'Content-Type': ct },
+    body: typeof body === 'string' ? body : JSON.stringify(body)
+  });
+}
+
+async function initDrive() {
+  showLoading();
+  try {
+    // ── Folder ──────────────────────────────────
+    let fId = localStorage.getItem('wos_fid');
+    if (fId) {
+      const r = await dGet(`https://www.googleapis.com/drive/v3/files/${fId}?fields=id,trashed`);
+      if (!r.ok) { fId = null; }
+      else {
+        const d = await r.json();
+        if (d.trashed) fId = null;
+      }
+    }
+    if (!fId) {
+      // Try searching first
+      const q = encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+      const r = await dGet(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+      const d = await r.json();
+      if (d.files && d.files.length > 0) {
+        fId = d.files[0].id;
+      } else {
+        const cr = await dPost('https://www.googleapis.com/drive/v3/files', {
+          name: FOLDER_NAME,
+          mimeType: 'application/vnd.google-apps.folder'
+        });
+        const cd = await cr.json();
+        fId = cd.id;
+      }
+      localStorage.setItem('wos_fid', fId);
+    }
+    S.drive.folderId = fId;
+
+    // ── File ────────────────────────────────────
+    let fileId = localStorage.getItem('wos_fileid');
+    if (fileId) {
+      const r = await dGet(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,trashed`);
+      if (!r.ok) { fileId = null; }
+      else {
+        const d = await r.json();
+        if (d.trashed) fileId = null;
+      }
+    }
+    if (!fileId) {
+      const q = encodeURIComponent(`name='${FILE_NAME}' and '${fId}' in parents and trashed=false`);
+      const r = await dGet(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+      const d = await r.json();
+      if (d.files && d.files.length > 0) {
+        fileId = d.files[0].id;
+      } else {
+        fileId = await createFile(fId);
+      }
+      localStorage.setItem('wos_fileid', fileId);
+    }
+    S.drive.fileId = fileId;
+
+    // ── Load data ────────────────────────────────
+    await loadFromDrive();
+    setSyncStatus('ok');
+    hideSignIn();
+  } catch(e) {
+    console.error('Drive init:', e);
+    setSyncStatus('error');
+    showToast('Drive-virhe — käytetään välimuistia');
+    loadFromCache();
+    hideSignIn();
+  } finally {
+    hideLoading();
+    render();
+  }
+}
+
+async function createFile(folderId) {
+  const meta = { name: FILE_NAME, parents: [folderId], mimeType: 'application/json' };
+  const empty = { items: [], version: 1 };
+  const bd = '----WorkOS_Boundary_1';
+  const body =
+    `--${bd}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(meta)}\r\n` +
+    `--${bd}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(empty)}\r\n--${bd}--`;
+  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + S.auth.token, 'Content-Type': `multipart/related; boundary=${bd}` },
+    body
+  });
+  const d = await r.json();
+  return d.id;
+}
+
+async function loadFromDrive() {
+  const r = await dGet(`https://www.googleapis.com/drive/v3/files/${S.drive.fileId}?alt=media`);
+  const d = await r.json();
+  S.items = d.items || [];
+  localStorage.setItem('wos_cache', JSON.stringify(S.items));
+}
+
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToDrive, 800);
+}
+
+async function saveToDrive() {
+  if (!S.drive.fileId) {
+    localStorage.setItem('wos_cache', JSON.stringify(S.items));
+    return;
+  }
+  setSyncStatus('syncing');
+  try {
+    await dPatch(
+      `https://www.googleapis.com/upload/drive/v3/files/${S.drive.fileId}?uploadType=media`,
+      JSON.stringify({ items: S.items, version: 1, updated: new Date().toISOString() })
+    );
+    localStorage.setItem('wos_cache', JSON.stringify(S.items));
+    setSyncStatus('ok');
+  } catch(e) {
+    console.error('Save:', e);
+    setSyncStatus('error');
+    showToast('Tallennus epäonnistui');
+  }
+}
+
+function loadFromCache() {
+  const c = localStorage.getItem('wos_cache');
+  if (c) { try { S.items = JSON.parse(c); } catch(e){} }
+}
+
+// ═══════════════════════════════════════════════
+// GMAIL
+// ═══════════════════════════════════════════════
+
+async function fetchEmails() {
+  if (!S.auth.ok) { showToast('Kirjaudu ensin'); return; }
+  const btn = document.getElementById('btn-fetch');
+  btn.textContent = '✉ Haetaan…';
+  btn.disabled = true;
+  try {
+    // Hae lukemattomat viestit inboxista
+    const r = await dGet(
+      'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=50&q=is:unread in:inbox'
+    );
+    const d = await r.json();
+    const messages = d.messages || [];
+    if (messages.length === 0) { showToast('Ei uusia viestejä'); return; }
+
+    let added = 0;
+    for (const m of messages) {
+      const msg = await getEmailDetails(m.id);
+      if (!msg) continue;
+      const parsed = parseEmail(msg);
+      if (!parsed) {
+        // Ei tunnisteta muotoa — ohitetaan hiljaisesti
+        continue;
+      }
+      // Lisää parsitut merkinnät
+      for (const item of parsed) {
+        S.items.unshift({ ...item, id: uid(), status: 'open', createdAt: new Date().toISOString() });
+        added++;
+      }
+      // Merkitse luetuksi (poista UNREAD-label)
+      await markAsRead(m.id);
+    }
+
+    if (added > 0) {
+      scheduleSave();
+      render();
+      showToast(`${added} uutta merkintää lisätty ✓`);
+    } else {
+      showToast('Ei tunnistettavia viestejä');
+    }
+  } catch(e) {
+    console.error('Gmail fetch:', e);
+    showToast('Gmail-virhe: ' + e.message);
+  } finally {
+    btn.textContent = '✉ Hae';
+    btn.disabled = false;
+  }
+}
+
+async function getEmailDetails(msgId) {
+  const r = await dGet(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`
+  );
+  if (!r.ok) return null;
+  return r.json();
+}
+
+async function markAsRead(msgId) {
+  await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}/modify`, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + S.auth.token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ removeLabelIds: ['UNREAD'] })
+  });
+}
+
+function getHeader(headers, name) {
+  return (headers.find(h => h.name.toLowerCase() === name.toLowerCase()) || {}).value || '';
+}
+
+function decodeBase64(str) {
+  try {
+    return decodeURIComponent(escape(atob(str.replace(/-/g,'+').replace(/_/g,'/'))));
+  } catch(e) { return ''; }
+}
+
+function getEmailBody(payload) {
+  // Hae plain text body
+  if (!payload) return '';
+  if (payload.mimeType === 'text/plain' && payload.body?.data) {
+    return decodeBase64(payload.body.data);
+  }
+  if (payload.parts) {
+    for (const p of payload.parts) {
+      const text = getEmailBody(p);
+      if (text) return text;
+    }
+  }
+  return '';
+}
+
+// Muodot:
+//   LUOKKA - Otsikko [DL: Today / Tomorrow / This week / 8.8.2026]
+//   tai pelkkä: LUOKKA - Otsikko
+const VALID_TYPES = ['TODO','QUESTION','MEMO','MEETING','DECISION','FOLLOW-UP'];
+
+function parseEmail(msg) {
+  const headers = msg.payload?.headers || [];
+  const subject = getHeader(headers, 'Subject').trim();
+  const body    = getEmailBody(msg.payload).trim();
+
+  // Lähetysaika deadlinen laskentaperusteeksi
+  const dateStr = getHeader(headers, 'Date');
+  const sentDate = dateStr ? new Date(dateStr) : new Date();
+
+  // Tunnista tyyppi + otsikko + deadline otsikosta
+  // Tuetut muodot: "TODO - Otsikko [DL: X]"  tai  "TODO - Otsikko DL: X"
+  const subjectMatch = subject.match(
+    /^(TODO|QUESTION|MEMO|MEETING|DECISION|FOLLOW-UP)\s*[-–]\s*(.+?)(?:\s*(?:\[DL:\s*([^\]]+)\]|DL:\s*(.+)))?$/i
+  );
+
+  if (!subjectMatch) return null;
+
+  const type   = subjectMatch[1].toUpperCase();
+  const title  = subjectMatch[2].trim();
+  const dlRaw  = (subjectMatch[3] || subjectMatch[4] || '').trim();
+  const deadline = parseDLString(dlRaw, sentDate);
+
+  if (type === 'MEMO') {
+    return parseMemo(title, body, deadline, sentDate);
+  }
+  return parseGenericBody(type, title, body, deadline, sentDate);
+}
+
+function parseDLString(raw, _sentDate = null) {
+  // Today/Tomorrow/This week lasketaan aina nykypäivästä — deadline on kiinteä
+  // Absoluuttiset päivämäärät (8.8.2026) ovat aina absoluuttisia
+  if (!raw) return null;
+  const lower = raw.toLowerCase().trim();
+  if (lower === 'today' || lower === 'tänään')             return fmt(today());
+  if (lower === 'tomorrow' || lower === 'huomenna')        { const d=today(); d.setDate(d.getDate()+1); return fmt(d); }
+  if (lower === 'this week' || lower === 'tällä viikolla') return fmt(weekEnd());
+  const mDot = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (mDot) return `${mDot[3]}-${mDot[2].padStart(2,'0')}-${mDot[1].padStart(2,'0')}`;
+  const mISO = raw.match(/^\d{4}-\d{2}-\d{2}$/);
+  if (mISO) return raw;
+  return null;
+}
+
+function extractSections(body) {
+  // Palauttaa { content, todoLines, questionLines }
+  const sections = {};
+  let cur = 'content';
+  for (const line of body.split('\n')) {
+    const t = line.trim();
+    const m = t.match(/^(CONTENT|Asiasisältö|TODO|QUESTIONS?)\s*:?\s*$/i);
+    if (m) {
+      cur = m[1].toLowerCase().replace(/s$/,'').replace('asiasisältö','content').replace('content','content');
+      continue;
+    }
+    if (!sections[cur]) sections[cur] = [];
+    sections[cur].push(line);
+  }
+  const toBullets = (lines) => (lines||[])
+    .map(l => l.replace(/^\s*[-•*]\s*/,'').trim())
+    .filter(Boolean);
+  return {
+    content: (sections['content']||[]).join('\n').trim(),
+    todoLines: toBullets(sections['todo']),
+    questionLines: toBullets(sections['question'])
+  };
+}
+
+function parseGenericBody(type, title, body, deadline, sentDate) {
+  const items = [];
+  const { content, todoLines, questionLines } = extractSections(body);
+
+  const subtasks = todoLines.map(t => ({ id: uid(), title: t, status: 'open', createdAt: new Date().toISOString() }));
+  items.push({ type, title, content, deadline, subtasks: subtasks.length ? subtasks : undefined });
+
+  for (const q of questionLines) {
+    items.push({ type:'QUESTION', title:q, content:`Lähde: ${type} — ${title}`, deadline:null });
+  }
+  return items;
+}
+
+function parseMemo(title, body, deadline, sentDate) {
+  const items = [];
+  const { content, todoLines, questionLines } = extractSections(body);
+
+  items.push({ type: 'MEMO', title, content, deadline: null });
+
+  for (const line of todoLines) {
+    const m = line.match(/^(.+?)(?:\s+DL:\s*(.+))?$/);
+    if (!m || !m[1].trim()) continue;
+    items.push({
+      type: 'TODO',
+      title: m[1].trim(),
+      content: `Lähde: MEMO — ${title}`,
+      deadline: parseDLString((m[2]||'').trim(), sentDate)
+    });
+  }
+
+  for (const q of questionLines) {
+    items.push({ type:'QUESTION', title:q, content:`Lähde: MEMO — ${title}`, deadline:null });
+  }
+
+  return items;
+}
+
+function setSyncStatus(st) {
+  S.sync.status = st;
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = '';
+  const map = {
+    ok:      ['',         'Drive ✓'],
+    syncing: ['syncing',  'Tallennetaan…'],
+    error:   ['error',    'Virhe'],
+    offline: ['offline',  'Ei yhteyttä']
+  };
+  const [cls, label] = map[st] || map.offline;
+  if (cls) dot.classList.add(cls);
+  txt.textContent = label;
+}
+
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function addItem(item) {
+  S.items.unshift({ ...item, id: uid(), status: 'open', createdAt: new Date().toISOString() });
+  scheduleSave(); render(); showToast('Lisätty ✓');
+}
+
+function updateItem(id, patch) {
+  const i = S.items.findIndex(x => x.id === id);
+  if (i < 0) return;
+  S.items[i] = { ...S.items[i], ...patch, updatedAt: new Date().toISOString() };
+  scheduleSave(); render();
+}
+
+function toggleDone(id) {
+  const item = S.items.find(x => x.id === id);
+  if (!item) return;
+  const done = item.status !== 'done';
+  updateItem(id, { status: done ? 'done' : 'open', doneAt: done ? new Date().toISOString() : null });
+  if (done) {
+    showUndoToast(`"${item.title.slice(0,30)}" merkitty valmiiksi`, () => {
+      updateItem(id, { status: 'open', doneAt: null });
+    });
+  }
+}
+
+function deleteItem(id) {
+  S.items = S.items.filter(x => x.id !== id);
+  scheduleSave(); render(); showToast('Poistettu');
+}
+
+// ═══════════════════════════════════════════════
+// TAB LOGIC
+// ═══════════════════════════════════════════════
+function tabItems(tab) {
+  const t = today(), we = weekEnd();
+  const visible = S.showDone ? S.items : S.items.filter(x => x.status === 'open');
+
+  switch(tab) {
+    case 'today':
+      return visible.filter(x => {
+        if (x.type === 'QUESTION') return false;
+        const dl = parseDate(x.deadline);
+        return dl && dl <= t;
+      });
+    case 'week':
+      return visible.filter(x => {
+        if (x.type === 'QUESTION') return false;
+        const dl = parseDate(x.deadline);
+        return dl && dl > t && dl <= we;
+      });
+    case 'later':
+      return visible.filter(x => {
+        if (x.type === 'QUESTION') return false;
+        const dl = parseDate(x.deadline);
+        return !dl || dl > we;
+      });
+    case 'questions':
+      return S.showDone ? S.items.filter(x => x.type === 'QUESTION')
+                        : S.items.filter(x => x.type === 'QUESTION' && x.status === 'open');
+  }
+  return [];
+}
+
+function openItemCount(tab) {
+  // Count only open items for badge
+  const t = today(), we = weekEnd();
+  const open = S.items.filter(x => x.status === 'open');
+  switch(tab) {
+    case 'today':
+      return open.filter(x => {
+        if (x.type === 'QUESTION') return false;
+        const dl = parseDate(x.deadline);
+        return dl && dl <= t;
+      }).length;
+    case 'week':
+      return open.filter(x => {
+        if (x.type === 'QUESTION') return false;
+        const dl = parseDate(x.deadline);
+        return dl && dl > t && dl <= we;
+      }).length;
+    case 'later':
+      return open.filter(x => {
+        if (x.type === 'QUESTION') return false;
+        const dl = parseDate(x.deadline);
+        return !dl || dl > we;
+      }).length;
+    case 'questions':
+      return open.filter(x => x.type === 'QUESTION').length;
+  }
+  return 0;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════
+const TABS = [
+  { id:'today',     label:'Tänään' },
+  { id:'week',      label:'Tällä viikolla' },
+  { id:'later',     label:'Myöhemmin' },
+  { id:'questions', label:'Avoimet kysymykset' }
+];
+
+function render() { renderTabs(); renderContent(); }
+
+function renderTabs() {
+  document.getElementById('tabs').innerHTML = TABS.map(t => {
+    const n = openItemCount(t.id);
+    const badge = n > 0 ? `<span class="tab-badge">${n}</span>` : '';
+    return `<div class="tab ${S.tab===t.id?'active':''}" onclick="setTab('${t.id}')">${t.label}${badge}</div>`;
+  }).join('');
+}
+
+function renderContent() {
+  const items = tabItems(S.tab);
+  const container = document.getElementById('content');
+
+  if (items.length === 0) {
+    const msgs = {
+      today:     ['✅','Ei tehtäviä tänään','Hyvin tehty, tai lisää uusi!'],
+      week:      ['📅','Ei tehtäviä tälle viikolle','Viikko on avoin.'],
+      later:     ['🔮','Ei tulevia tehtäviä','Kaikki hallinnassa.'],
+      questions: ['❓','Ei avoimia kysymyksiä','Kaikki selvitetty!']
+    };
+    const [icon, h, p] = msgs[S.tab];
+    container.innerHTML = `<div class="empty"><div class="empty-icon">${icon}</div><h3>${h}</h3><p>${p}</p></div>`;
+    appendDoneToggle(container);
+    return;
+  }
+
+  let html = '';
+
+  if (S.tab === 'today') {
+    const t = today();
+    const overdue = items.filter(x => parseDate(x.deadline) < t);
+    const due     = items.filter(x => isSameDay(parseDate(x.deadline), t));
+    if (overdue.length) {
+      html += `<div class="sec-head">⚠️ Myöhässä</div>`;
+      html += overdue.map(cardHtml).join('');
+    }
+    if (due.length) {
+      if (overdue.length) html += `<div class="sec-head">Tänään</div>`;
+      html += due.map(cardHtml).join('');
+    }
+  } else if (S.tab === 'week') {
+    const groups = {};
+    items.forEach(x => {
+      const k = x.deadline || '';
+      if (!groups[k]) groups[k] = [];
+      groups[k].push(x);
+    });
+    Object.keys(groups).sort().forEach(k => {
+      const d = parseDate(k);
+      const label = d ? d.toLocaleDateString('fi-FI', {weekday:'long',day:'numeric',month:'long'}) : '—';
+      html += `<div class="sec-head">${label.charAt(0).toUpperCase()+label.slice(1)}</div>`;
+      html += groups[k].map(cardHtml).join('');
+    });
+  } else {
+    html = items.map(cardHtml).join('');
+  }
+
+  container.innerHTML = html;
+  appendDoneToggle(container);
+}
+
+function doneCountForTab(tab) {
+  // Laske valmiit riippumatta S.showDone-tilasta
+  const t = today(), we = weekEnd();
+  const done = S.items.filter(x => x.status === 'done');
+  switch(tab) {
+    case 'today':
+      return done.filter(x => { if (x.type==='QUESTION') return false; const dl=parseDate(x.deadline); return dl && dl<=t; }).length;
+    case 'week':
+      return done.filter(x => { if (x.type==='QUESTION') return false; const dl=parseDate(x.deadline); return dl && dl>t && dl<=we; }).length;
+    case 'later':
+      return done.filter(x => { if (x.type==='QUESTION') return false; const dl=parseDate(x.deadline); return !dl || dl>we; }).length;
+    case 'questions':
+      return done.filter(x => x.type==='QUESTION').length;
+  }
+  return 0;
+}
+
+function appendDoneToggle(container) {
+  const doneCount = doneCountForTab(S.tab);
+  if (!S.showDone && doneCount === 0) return;
+  const el = document.createElement('div');
+  el.id = 'show-done-toggle';
+  el.onclick = toggleShowDone;
+  el.textContent = S.showDone ? '▲ Piilota valmiit' : `▼ Näytä valmiit (${doneCount})`;
+  container.appendChild(el);
+}
+
+function esc(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function cardHtml(item) {
+  const badge = deadlineBadge(item.deadline);
+  const done = item.status === 'done';
+  const isOverdue = !done && item.deadline && parseDate(item.deadline) < today();
+  const subs = item.subtasks || [];
+  const hasSubs = subs.length > 0;
+  const subsDone = subs.filter(s => s.status === 'done').length;
+  const hasContent = !!item.content;
+
+  const badgeHtml = badge ? `<span class="dl-badge ${badge.cls}">${esc(badge.text)}</span>` : '';
+  const progressHtml = hasSubs
+    ? `<span class="dl-badge dl-later" style="font-variant-numeric:tabular-nums">${subsDone}/${subs.length} ✓</span>` : '';
+
+  const contentHtml = hasContent
+    ? `<div class="card-body-text" id="cb-${item.id}">${esc(item.content).replace(/\n/g,'<br>')}</div>` : '';
+
+  const subsHtml = hasSubs ? `
+    <div class="subtasks" id="subs-${item.id}">
+      ${subs.map(s => `
+        <div class="subtask-row ${s.status==='done'?'done':''}">
+          <div class="subtask-check" onclick="toggleSubtask('${item.id}','${s.id}')"></div>
+          <span class="subtask-title">${esc(s.title)}</span>
+        </div>`).join('')}
+      <div class="subtask-add-row">
+        <input class="subtask-add-input" id="sub-input-${item.id}"
+               placeholder="+ Lisää osatehtävä…" type="text"
+               onkeydown="subtaskInputKey(event,'${item.id}')">
+      </div>
+    </div>` : `
+    <div class="subtask-add-row" id="subs-${item.id}" style="margin-top:6px;display:none">
+      <input class="subtask-add-input" id="sub-input-${item.id}"
+             placeholder="+ Lisää osatehtävä…" type="text"
+             onkeydown="subtaskInputKey(event,'${item.id}')">
+    </div>`;
+
+  const expandBtn = hasContent
+    ? `<button class="card-btn" onclick="toggleBody('${item.id}')" title="Laajenna">▾</button>` : '';
+  const subBtn = !hasSubs
+    ? `<button class="card-btn" onclick="showSubInput('${item.id}')" title="Lisää osatehtävä">⊕</button>` : '';
+
+  return `
+<div class="card ${done?'done':''} ${isOverdue?'overdue':''}" data-type="${esc(item.type)}">
+  <div class="card-main">
+    <div class="card-check" onclick="toggleDone('${item.id}')"></div>
+    <div class="card-body" style="min-width:0;flex:1">
+      <div class="card-meta">
+        <span class="type-badge type-badge-${esc(item.type)}">${esc(item.type)}</span>
+        ${badgeHtml}${progressHtml}
+      </div>
+      <div class="card-title">${esc(item.title)}</div>
+      ${contentHtml}
+      ${subsHtml}
+    </div>
+    <div class="card-actions">
+      ${expandBtn}
+      ${subBtn}
+      <button class="card-btn" onclick="openEdit('${item.id}')" title="Muokkaa">✎</button>
+    </div>
+  </div>
+</div>`;
+}
+
+function toggleBody(id) {
+  const el = document.getElementById('cb-' + id);
+  if (el) el.classList.toggle('show');
+}
+
+function showSubInput(id) {
+  const el = document.getElementById('subs-' + id);
+  if (el) { el.style.display = 'block'; el.querySelector('input')?.focus(); }
+}
+
+function subtaskInputKey(e, itemId) {
+  if (e.key !== 'Enter') return;
+  const input = e.target;
+  const title = input.value.trim();
+  if (!title) return;
+  addSubtask(itemId, title);
+  input.value = '';
+}
+
+function addSubtask(itemId, title) {
+  const item = S.items.find(x => x.id === itemId);
+  if (!item) return;
+  const subs = [...(item.subtasks || []), { id: uid(), title, status: 'open', createdAt: new Date().toISOString() }];
+  updateItem(itemId, { subtasks: subs });
+}
+
+function toggleSubtask(itemId, subId) {
+  const item = S.items.find(x => x.id === itemId);
+  if (!item) return;
+  const subs = (item.subtasks || []).map(s =>
+    s.id === subId ? { ...s, status: s.status === 'done' ? 'open' : 'done' } : s
+  );
+  // Auto-complete parent when all subtasks done
+  const allDone = subs.length > 0 && subs.every(s => s.status === 'done');
+  const patch = { subtasks: subs };
+  if (allDone && item.status !== 'done') {
+    patch.status = 'done';
+    patch.doneAt = new Date().toISOString();
+    updateItem(itemId, patch);
+    showUndoToast(`"${item.title.slice(0,28)}" valmistui automaattisesti`, () => {
+      const i = S.items.find(x => x.id === itemId);
+      if (i) updateItem(itemId, { status: 'open', doneAt: null });
+    });
+  } else {
+    // If parent was done but a subtask is re-opened, re-open parent too
+    if (item.status === 'done' && !allDone) patch.status = 'open';
+    updateItem(itemId, patch);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════
+const TYPE_OPTS = [
+  { t:'TODO',      icon:'✓',  name:'TODO' },
+  { t:'QUESTION',  icon:'?',  name:'QUESTION' },
+  { t:'MEMO',      icon:'📝', name:'MEMO' },
+  { t:'MEETING',   icon:'📅', name:'MEETING' },
+  { t:'DECISION',  icon:'⚡', name:'DECISION' },
+  { t:'FOLLOW-UP', icon:'↻',  name:'FOLLOW-UP' }
+];
+
+function openAdd() {
+  S.modal = { open:true, item:null, mode:'add', type:'TODO', deadline:null };
+  buildModal();
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('m-title')?.focus(), 100);
+}
+
+function openEdit(id) {
+  const item = S.items.find(x => x.id === id);
+  if (!item) return;
+  S.modal = { open:true, item, mode:'edit', type:item.type, deadline:item.deadline||null };
+  buildModal();
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function overlayClick(e) {
+  if (e.target === document.getElementById('overlay')) closeModal();
+}
+
+function buildModal() {
+  const { mode, item } = S.modal;
+
+  const typeGrid = TYPE_OPTS.map(o => `
+    <div class="type-opt ${S.modal.type===o.t?'sel':''}" data-t="${o.t}" onclick="selectType('${o.t}')">
+      <div class="type-opt-icon">${o.icon}</div>
+      <div class="type-opt-name">${o.name}</div>
+    </div>`).join('');
+
+  const titleVal = mode === 'edit' ? esc(item.title) : '';
+  const contentVal = mode === 'edit' ? esc(item.content||'') : '';
+
+  // Deadline pills
+  const dlValue = S.modal.deadline || '';
+  const t = today(), tom = tomorrow(), we = weekEnd();
+  const dlDate = parseDate(dlValue);
+  const isToday    = dlDate && isSameDay(dlDate, t);
+  const isTomorrow = dlDate && isSameDay(dlDate, tom);
+  const isWeek     = dlDate && dlDate > t && dlDate <= we && !isToday && !isTomorrow;
+  const isCustom   = dlDate && !(isToday || isTomorrow || isWeek);
+  const isNone     = !dlValue;
+
+  const pills = `
+    <div class="dl-pills">
+      <div class="dl-pill ${isToday?'sel':''}" onclick="selDL('today')">Tänään</div>
+      <div class="dl-pill ${isTomorrow?'sel':''}" onclick="selDL('tomorrow')">Huomenna</div>
+      <div class="dl-pill ${isWeek?'sel':''}" onclick="selDL('week')">Tällä viikolla</div>
+      <input type="date" id="m-dl-date" class="dl-pill-date"
+             value="${isCustom ? dlValue : ''}"
+             onchange="selDLDate(this.value)"
+             title="Valitse päivämäärä">
+      <div class="dl-pill ${isNone?'sel':''}" onclick="selDL('none')">Ei deadlinea</div>
+    </div>`;
+
+  const showDL = !['MEMO','DECISION'].includes(S.modal.type);
+
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">${mode==='edit'?'Muokkaa merkintää':'Uusi merkintä'}</div>
+    <div class="type-grid">${typeGrid}</div>
+    <div class="form-row">
+      <label class="form-label">Otsikko</label>
+      <input id="m-title" class="form-input" type="text"
+             placeholder="Kuvaa lyhyesti…" value="${titleVal}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Lisätiedot <span style="font-weight:400;color:var(--text-3)">(valinnainen)</span></label>
+      <textarea id="m-content" class="form-textarea"
+                placeholder="Taustatiedot, muistiinpanot, TODOt…">${contentVal}</textarea>
+    </div>
+    <div class="form-row" id="m-dl-row" style="${showDL?'':'display:none'}">
+      <label class="form-label">Deadline</label>
+      ${pills}
+    </div>
+    <button class="btn-save" onclick="saveModal()">
+      ${mode==='edit'?'Tallenna muutokset':'Lisää merkintä'}
+    </button>
+    ${mode==='edit' ? `<button class="btn-del" onclick="doDelete('${item.id}')">Poista merkintä</button>` : ''}
+  `;
+}
+
+function selectType(t) {
+  S.modal.type = t;
+  // update selected styles
+  document.querySelectorAll('.type-opt').forEach(el => {
+    el.classList.toggle('sel', el.dataset.t === t);
+  });
+  // show/hide deadline
+  const dlRow = document.getElementById('m-dl-row');
+  if (dlRow) dlRow.style.display = ['MEMO','DECISION'].includes(t) ? 'none' : '';
+}
+
+function selDL(key) {
+  const t = today(), tom = tomorrow(), we = weekEnd();
+  if (key === 'none')     S.modal.deadline = null;
+  else if (key === 'today')    S.modal.deadline = fmt(t);
+  else if (key === 'tomorrow') S.modal.deadline = fmt(tom);
+  else if (key === 'week')     S.modal.deadline = fmt(we);
+  // Rebuild only pills area to avoid losing focus weirdly
+  document.querySelectorAll('.dl-pill').forEach(el => {
+    const map = { today: fmt(t), tomorrow: fmt(tom), week: fmt(we), none: null };
+    el.classList.toggle('sel',
+      (el.onclick.toString().includes("'none'") && !S.modal.deadline) ||
+      (el.onclick.toString().includes("'today'") && S.modal.deadline === fmt(t)) ||
+      (el.onclick.toString().includes("'tomorrow'") && S.modal.deadline === fmt(tom)) ||
+      (el.onclick.toString().includes("'week'") && S.modal.deadline === fmt(we))
+    );
+  });
+  const dateInput = document.getElementById('m-dl-date');
+  if (dateInput && key !== 'custom') dateInput.value = '';
+}
+
+function selDLDate(val) {
+  S.modal.deadline = val || null;
+  document.querySelectorAll('.dl-pill').forEach(el => el.classList.remove('sel'));
+}
+
+function saveModal() {
+  const title = (document.getElementById('m-title')?.value || '').trim();
+  if (!title) { document.getElementById('m-title')?.focus(); showToast('Kirjoita otsikko'); return; }
+  const content = (document.getElementById('m-content')?.value || '').trim();
+  const type = S.modal.type;
+  const deadline = ['MEMO','DECISION'].includes(type) ? null : (S.modal.deadline || null);
+
+  if (S.modal.mode === 'edit') {
+    updateItem(S.modal.item.id, { title, content, type, deadline });
+    showToast('Tallennettu ✓');
+  } else {
+    addItem({ title, content, type, deadline });
+  }
+  closeModal();
+}
+
+function doDelete(id) {
+  if (confirm('Poistetaanko tämä merkintä?')) {
+    deleteItem(id);
+    closeModal();
+  }
+}
+
+// ═══════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════
+function setTab(t) { S.tab = t; render(); }
+function toggleShowDone() { S.showDone = !S.showDone; render(); }
+
+let toastTm;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.innerHTML = esc(msg); el.classList.add('show');
+  clearTimeout(toastTm);
+  toastTm = setTimeout(() => el.classList.remove('show'), 2200);
+}
+let undoCb = null;
+function showUndoToast(msg, cb) {
+  undoCb = cb;
+  clearTimeout(toastTm);
+  const el = document.getElementById('toast');
+  el.innerHTML = `${esc(msg)} &nbsp;<span onclick="doUndo()" style="font-weight:700;text-decoration:underline;cursor:pointer">Kumoa</span>`;
+  el.classList.add('show');
+  toastTm = setTimeout(() => { el.classList.remove('show'); undoCb = null; }, 5000);
+}
+function doUndo() {
+  if (undoCb) { undoCb(); undoCb = null; }
+  document.getElementById('toast').classList.remove('show');
+  clearTimeout(toastTm);
+}
+function showLoading() { document.getElementById('loading').classList.add('on'); }
+function hideLoading() { document.getElementById('loading').classList.remove('on'); }
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+function init() {
+  // Pre-fill client id input
+  if (S.clientId) document.getElementById('client-id-input').value = S.clientId;
+
+  // Load cache for immediate display
+  loadFromCache();
+  render();
+
+  // Try silent sign-in if we have a client id
+  if (S.clientId) {
+    if (gisReady) {
+      initTokenClient(S.clientId);
+      tokenClient.requestAccessToken({ prompt: '' });
+    } else {
+      pendingSignIn = true;
+    }
+  } else {
+    showSignIn();
+  }
+
+  // Keyboard shortcut: N = new item
+  document.addEventListener('keydown', e => {
+    if (e.key === 'n' && !e.ctrlKey && !e.metaKey &&
+        !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+      openAdd();
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
