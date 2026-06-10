@@ -292,6 +292,100 @@ body.sandbox #sandbox-banner { display: flex; }
 .thread-line { flex: 1; height: 1px; background: var(--border); }
 .card.in-thread { border-left-color: var(--slate) !important; margin-left: 12px; }
 
+/* ── MEMO GROUPS (Altaat) ─────────────────── */
+.memo-groups-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.btn-new-group {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  background: var(--primary-bg); border: 1px solid var(--dark-br);
+  border-radius: 8px; padding: 5px 12px; cursor: pointer;
+  transition: background .15s; display: flex; align-items: center; gap: 5px;
+}
+.btn-new-group:hover { background: var(--accent); color: #000; }
+.memo-group {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: box-shadow .15s;
+}
+.memo-group.drag-over {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.memo-group-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+.memo-group.collapsed .memo-group-header { border-bottom: none; }
+.memo-group-chevron { font-size: 10px; color: var(--text-3); transition: transform .2s; min-width: 10px; }
+.memo-group.collapsed .memo-group-chevron { transform: rotate(-90deg); }
+.memo-group-name {
+  flex: 1; font-size: 13px; font-weight: 600; color: var(--text);
+}
+.memo-group-count {
+  font-size: 11px; background: var(--surface-2); color: var(--text-2);
+  border-radius: 10px; padding: 1px 8px; font-weight: 600;
+}
+.memo-group-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+.memo-group-header:hover .memo-group-actions { opacity: 1; }
+.memo-group-btn {
+  font-size: 13px; padding: 2px 5px; border-radius: 6px; cursor: pointer;
+  color: var(--text-3); background: none; border: none;
+  transition: background .15s, color .15s;
+}
+.memo-group-btn:hover { background: var(--surface-2); color: var(--text); }
+.memo-group-body { padding: 8px 8px 4px; }
+.memo-group-empty {
+  padding: 8px 6px 10px; font-size: 12px; color: var(--text-3);
+  font-style: italic; text-align: center;
+}
+.memo-group.archived-group .memo-group-header { opacity: .6; }
+.memo-group.archived-group .memo-group-name::after {
+  content: ' · arkistoitu'; font-size: 10px; color: var(--text-3); font-weight: 400;
+}
+.memo-archived-toggle {
+  text-align: center; font-size: 12px; color: var(--text-3);
+  cursor: pointer; padding: 8px; margin-top: 4px; border-radius: 8px;
+  transition: color .15s;
+}
+.memo-archived-toggle:hover { color: var(--text-2); }
+.memo-ungrouped-header {
+  font-size: 10px; font-weight: 700; letter-spacing: .6px;
+  text-transform: uppercase; color: var(--text-3);
+  margin: 12px 0 6px; padding-left: 2px;
+}
+/* item drag handle */
+.card-drag-handle {
+  cursor: grab; color: var(--text-3); font-size: 14px;
+  padding: 0 4px; opacity: 0; transition: opacity .15s; touch-action: none;
+}
+.card:hover .card-drag-handle { opacity: 1; }
+.card.dragging { opacity: .4; }
+/* group assign button on card */
+.card-group-btn {
+  font-size: 11px; color: var(--text-3); cursor: pointer;
+  background: none; border: none; padding: 2px 4px; border-radius: 5px;
+  transition: background .15s, color .15s;
+}
+.card-group-btn:hover { background: var(--surface-2); color: var(--accent); }
+.group-picker-popup {
+  position: absolute; right: 0; top: 100%; z-index: 200;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; min-width: 160px; box-shadow: var(--shadow-lg);
+  padding: 4px 0; overflow: hidden;
+}
+.group-picker-item {
+  padding: 8px 14px; font-size: 13px; cursor: pointer; color: var(--text);
+  transition: background .1s;
+}
+.group-picker-item:hover { background: var(--border); }
+.group-picker-item.active { color: var(--accent); }
+
 /* ── DONE DATE ──────────────────────────────── */
 .done-date { font-size: 11px; color: var(--text-3); font-style: italic; }
 
@@ -660,6 +754,9 @@ const SANDBOX_FILE_NAME = 'workos_sandbox.json';
 // ═══════════════════════════════════════════════
 const S = {
   items: [],
+  groups: [],            // memo altaat: [{id,name,order,archived,collapsed}]
+  showArchivedGroups: false,
+  dragItemId: null,      // drag state (local only)
   tab: 'todo',
   showDone: false,
   searchQuery: '',
@@ -789,6 +886,7 @@ function signOut() {
   S.auth = { ok: false, token: null, exp: 0 };
   S.drive = { folderId: null, fileId: null };
   S.items = [];
+  S.groups = [];
   document.getElementById('user-menu').style.display = 'none';
   document.getElementById('user-dropdown').style.display = 'none';
   setSyncStatus('offline');
@@ -942,7 +1040,8 @@ async function loadFromDrive() {
   const r = await dGet(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`);
   const d = await r.json();
   S.items = d.items || [];
-  localStorage.setItem('wos_cache', JSON.stringify(S.items));
+  S.groups = d.groups || [];
+  localStorage.setItem('wos_cache', JSON.stringify({ items: S.items, groups: S.groups }));
 }
 
 let saveTimer = null;
@@ -954,16 +1053,16 @@ function scheduleSave() {
 async function saveToDrive() {
   const fid = activeFileId();
   if (!fid) {
-    localStorage.setItem('wos_cache', JSON.stringify(S.items));
+    localStorage.setItem('wos_cache', JSON.stringify({ items: S.items, groups: S.groups }));
     return;
   }
   setSyncStatus('syncing');
   try {
     await dPatch(
       `https://www.googleapis.com/upload/drive/v3/files/${fid}?uploadType=media`,
-      JSON.stringify({ items: S.items, version: 1, updated: new Date().toISOString() })
+      JSON.stringify({ items: S.items, groups: S.groups, version: 1, updated: new Date().toISOString() })
     );
-    localStorage.setItem('wos_cache', JSON.stringify(S.items));
+    localStorage.setItem('wos_cache', JSON.stringify({ items: S.items, groups: S.groups }));
     setSyncStatus('ok');
   } catch(e) {
     console.error('Save:', e);
@@ -974,7 +1073,12 @@ async function saveToDrive() {
 
 function loadFromCache() {
   const c = localStorage.getItem('wos_cache');
-  if (c) { try { S.items = JSON.parse(c); } catch(e){} }
+  if (c) { try {
+    const d = JSON.parse(c);
+    // support both old (array) and new (object) cache format
+    if (Array.isArray(d)) { S.items = d; }
+    else { S.items = d.items || []; S.groups = d.groups || []; }
+  } catch(e){} }
 }
 
 // ═══════════════════════════════════════════════
@@ -1230,6 +1334,172 @@ function deleteItem(id) {
 }
 
 // ═══════════════════════════════════════════════
+// MEMO GROUPS (Altaat)
+// ═══════════════════════════════════════════════
+function createGroup(name) {
+  const g = { id: uid(), name: name.trim(), order: S.groups.length, archived: false, collapsed: false };
+  S.groups.push(g);
+  scheduleSave(); render();
+}
+
+function renameGroup(id) {
+  const g = S.groups.find(x => x.id === id);
+  if (!g) return;
+  const name = prompt('Altaan nimi:', g.name);
+  if (name && name.trim()) { g.name = name.trim(); scheduleSave(); render(); }
+}
+
+function archiveGroup(id) {
+  const g = S.groups.find(x => x.id === id);
+  if (!g) return;
+  g.archived = !g.archived;
+  scheduleSave(); render();
+  showToast(g.archived ? 'Allas arkistoitu' : 'Allas palautettu arkistosta');
+}
+
+function deleteGroup(id) {
+  if (!confirm('Poista allas? Memot siirtyvät Muut-osioon.')) return;
+  S.groups = S.groups.filter(x => x.id !== id);
+  S.items = S.items.map(x => x.groupId === id ? { ...x, groupId: null } : x);
+  scheduleSave(); render();
+}
+
+function toggleGroupCollapse(id) {
+  const g = S.groups.find(x => x.id === id);
+  if (g) { g.collapsed = !g.collapsed; render(); }
+}
+
+function moveItemToGroup(itemId, groupId) {
+  S.items = S.items.map(x => x.id === itemId ? { ...x, groupId: groupId || null } : x);
+  scheduleSave(); render();
+  // close any open picker
+  document.querySelectorAll('.group-picker-popup').forEach(el => el.remove());
+}
+
+function promptNewGroup() {
+  const name = prompt('Uuden altaan nimi:');
+  if (name && name.trim()) createGroup(name);
+}
+
+function showGroupPicker(itemId, btn) {
+  // close any existing picker
+  document.querySelectorAll('.group-picker-popup').forEach(el => el.remove());
+  const item = S.items.find(x => x.id === itemId);
+  const popup = document.createElement('div');
+  popup.className = 'group-picker-popup';
+  const activeGroups = S.groups.filter(g => !g.archived).sort((a,b) => a.order - b.order);
+  const opts = [{ id: null, name: '— Muut (ei ryhmää)' }, ...activeGroups];
+  popup.innerHTML = opts.map(g =>
+    `<div class="group-picker-item ${item?.groupId === g.id ? 'active' : ''}"
+      onclick="moveItemToGroup('${esc(itemId)}','${g.id||''}');event.stopPropagation()">
+      ${esc(g.name)}
+    </div>`
+  ).join('');
+  btn.style.position = 'relative';
+  btn.appendChild(popup);
+  const close = (e) => { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', close); } };
+  setTimeout(() => document.addEventListener('click', close), 10);
+}
+
+function renderMemos(items) {
+  const activeGroups = S.groups.filter(g => !g.archived).sort((a,b) => a.order - b.order);
+  const archivedGroups = S.groups.filter(g => g.archived).sort((a,b) => a.order - b.order);
+  const ungrouped = items.filter(x => !x.groupId || !S.groups.find(g => g.id === x.groupId));
+
+  function groupBody(g, groupItems) {
+    const isCollapsed = g.collapsed;
+    const bodyHtml = isCollapsed ? '' : `
+      <div class="memo-group-body"
+        ondragover="event.preventDefault();document.getElementById('mg-${g.id}').classList.add('drag-over')"
+        ondragleave="document.getElementById('mg-${g.id}').classList.remove('drag-over')"
+        ondrop="dropMemoOnGroup(event,'${g.id}')">
+        ${groupItems.length
+          ? groupItems.map(x => memoCardHtml(x)).join('')
+          : `<div class="memo-group-empty">Raahaa memoja tähän</div>`}
+      </div>`;
+    return `
+      <div class="memo-group ${isCollapsed?'collapsed':''} ${g.archived?'archived-group':''}"
+           id="mg-${g.id}"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="dropMemoOnGroup(event,'${g.id}')">
+        <div class="memo-group-header" onclick="toggleGroupCollapse('${g.id}')">
+          <span class="memo-group-chevron">▼</span>
+          <span class="memo-group-name">${esc(g.name)}</span>
+          <span class="memo-group-count">${groupItems.length}</span>
+          <div class="memo-group-actions" onclick="event.stopPropagation()">
+            <button class="memo-group-btn" title="Nimeä uudelleen" onclick="renameGroup('${g.id}')">✏️</button>
+            <button class="memo-group-btn" title="${g.archived?'Palauta arkistosta':'Arkistoi'}" onclick="archiveGroup('${g.id}')">${g.archived?'📤':'📦'}</button>
+            <button class="memo-group-btn" title="Poista allas" onclick="deleteGroup('${g.id}')">🗑</button>
+          </div>
+        </div>
+        ${bodyHtml}
+      </div>`;
+  }
+
+  let html = `<div class="memo-groups-toolbar">
+    <span style="font-size:12px;color:var(--text-3)">${items.length} memoa / päätöstä</span>
+    <button class="btn-new-group" onclick="promptNewGroup()">＋ Uusi allas</button>
+  </div>`;
+
+  // Active groups
+  activeGroups.forEach(g => {
+    const groupItems = items.filter(x => x.groupId === g.id);
+    html += groupBody(g, groupItems);
+  });
+
+  // Ungrouped
+  if (ungrouped.length > 0 || activeGroups.length === 0) {
+    html += `<div class="memo-ungrouped-header">Muut</div>
+      <div id="mg-ungrouped"
+        ondragover="event.preventDefault();document.getElementById('mg-ungrouped').style.outline='2px solid var(--accent)'"
+        ondragleave="document.getElementById('mg-ungrouped').style.outline=''"
+        ondrop="dropMemoOnGroup(event,'')">
+        ${ungrouped.length
+          ? ungrouped.map(x => memoCardHtml(x)).join('')
+          : `<div class="todo-section-empty">Ei ryhmittelemättömiä memoja.</div>`}
+      </div>`;
+  }
+
+  // Archived groups
+  if (archivedGroups.length > 0) {
+    html += `<div class="memo-archived-toggle" onclick="S.showArchivedGroups=!S.showArchivedGroups;render()">
+      ${S.showArchivedGroups ? '▲' : '▼'} Arkisto (${archivedGroups.length})
+    </div>`;
+    if (S.showArchivedGroups) {
+      archivedGroups.forEach(g => {
+        const groupItems = items.filter(x => x.groupId === g.id);
+        html += groupBody(g, groupItems);
+      });
+    }
+  }
+
+  return html;
+}
+
+function memoCardHtml(item) {
+  // Wrap cardHtml output with drag attributes
+  const inner = cardHtml(item);
+  // inject drag handle and group button into the card
+  return `<div draggable="true"
+    ondragstart="S.dragItemId='${esc(item.id)}';event.currentTarget.classList.add('dragging')"
+    ondragend="event.currentTarget.classList.remove('dragging')"
+    style="position:relative">
+    ${inner.replace('<div class="card-actions">', `<div class="card-actions"><button class="card-group-btn" title="Siirrä altaaseen" onclick="event.stopPropagation();showGroupPicker('${esc(item.id)}',this)">📁</button>`)}
+  </div>`;
+}
+
+function dropMemoOnGroup(event, groupId) {
+  event.preventDefault();
+  const id = S.dragItemId;
+  S.dragItemId = null;
+  // clean all drag-over states
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  document.querySelectorAll('[id^="mg-"]').forEach(el => el.style.outline = '');
+  if (id) moveItemToGroup(id, groupId || null);
+}
+
+// ═══════════════════════════════════════════════
 // TAB LOGIC
 // ═══════════════════════════════════════════════
 const MEMO_TYPES = new Set(['MEMO', 'DECISION']);
@@ -1396,11 +1666,18 @@ function renderContent() {
     return;
   }
 
-  // ── Non-todo tabs ──────────────────────────
+  // ── Memos tab — always uses group renderer ──
+  if (S.tab === 'memos') {
+    container.innerHTML = renderMemos(items);
+    appendDoneToggle(container);
+    loadMemoImages();
+    return;
+  }
+
+  // ── Other non-todo tabs ──────────────────────
   if (items.length === 0) {
     const msgs = {
       questions: ['❓','Ei avoimia kysymyksiä','Kaikki selvitetty!'],
-      memos:     ['📝','Ei memoja','Lisää memo tai päätös!']
     };
     const [icon, h, p] = msgs[S.tab] || ['📋','Tyhjä',''];
     const emptyMsg = S.searchQuery
@@ -1411,27 +1688,12 @@ function renderContent() {
     return;
   }
 
-  if (S.tab === 'memos') {
-    const threads = {}, noThread = [];
-    items.forEach(x => {
-      if (x.threadId) { if (!threads[x.threadId]) threads[x.threadId]=[]; threads[x.threadId].push(x); }
-      else noThread.push(x);
-    });
-    Object.keys(threads).forEach(tid => {
-      const group = threads[tid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
-      html += `<div class="thread-group">
-        <div class="thread-header">🔗 ${esc(group[0].title)} (${group.length})</div>
-        ${group.map(x=>`<div class="card in-thread">${cardHtml(x,true)}</div>`).join('')}
-      </div>`;
-    });
-    noThread.forEach(x => { html += cardHtml(x); });
-  } else {
+  {
     html = items.map(cardHtml).join('');
   }
 
   container.innerHTML = html;
   appendDoneToggle(container);
-  if (S.tab === 'memos') loadMemoImages();
 }
 
 function doneCountForTab(tab) {
