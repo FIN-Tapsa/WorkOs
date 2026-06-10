@@ -7,24 +7,32 @@
 <script src="https://accounts.google.com/gsi/client" onload="onGISLoad()" async defer></script>
 <style>
 :root {
-  --bg: #f0f2f5;
-  --surface: #ffffff;
-  --border: #e4e7ec;
-  --text: #111827;
-  --text-2: #6b7280;
-  --text-3: #9ca3af;
-  --primary: #2563eb;
-  --primary-bg: #eff6ff;
-  --radius: 12px;
-  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+  /* ── Green / dark palette ── */
+  --bg:          #0F0F0F;
+  --surface:     #202020;
+  --surface-2:   #2a2a2a;
+  --border:      #2e2e2e;
+  --border-2:    #3a3a3a;
+  --text:        #F8F8F8;
+  --text-2:      #a0a0a0;
+  --text-3:      #606060;
+  --primary:     #5DD62C;
+  --primary-h:   #4eba22;
+  --primary-bg:  #0d1f08;
+  --accent:      #5DD62C;
+  --accent-dim:  #337418;
+  --dark-br:     #337418;
+  --slate:       #606060;
+  --radius:      12px;
+  --shadow:      0 1px 4px rgba(0,0,0,.6), 0 1px 2px rgba(0,0,0,.5);
+  --shadow-lg:   0 10px 32px rgba(0,0,0,.7);
   /* type colors */
-  --c-todo: #2563eb;
-  --c-question: #d97706;
-  --c-memo: #6b7280;
-  --c-meeting: #059669;
-  --c-decision: #7c3aed;
-  --c-followup: #dc2626;
+  --c-todo:     #5DD62C;
+  --c-question: #f0c040;
+  --c-memo:     #808080;
+  --c-meeting:  #38bdf8;
+  --c-decision: #c084fc;
+  --c-followup: #f87171;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
@@ -48,53 +56,52 @@ body {
   top: 0;
   z-index: 100;
 }
-.logo { font-size: 19px; font-weight: 800; letter-spacing: -0.5px; }
-.logo span { color: var(--primary); }
+.logo {
+  font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+  color: var(--text);
+}
+.logo span { color: var(--accent); }
 #sync-status {
-  font-size: 12px;
-  color: var(--text-2);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: default;
+  font-size: 11px; color: var(--text-3);
+  display: flex; align-items: center; gap: 5px; cursor: default;
 }
 #sync-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #10b981;
-  flex-shrink: 0;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4ade80; flex-shrink: 0;
 }
-#sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
-#sync-dot.error   { background: #ef4444; }
-#sync-dot.offline { background: #9ca3af; }
+#sync-dot.syncing { background: var(--primary); animation: pulse 1s infinite; }
+#sync-dot.error   { background: #f87171; }
+#sync-dot.offline { background: var(--text-3); }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 .header-right { display: flex; gap: 8px; align-items: center; }
 #btn-signin-small {
-  font-size: 13px; font-weight: 600; color: var(--primary);
-  background: var(--primary-bg); border: none; border-radius: 8px;
-  padding: 6px 12px; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--accent);
+  background: var(--primary-bg); border: 1px solid var(--border-2);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
 }
 #btn-add {
   width: 36px; height: 36px; border-radius: 10px;
   background: var(--primary); color: #fff;
   border: none; cursor: pointer; font-size: 22px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 300;
+  font-weight: 300; box-shadow: 0 2px 8px rgba(93,214,44,.3);
+  transition: background .12s, box-shadow .12s;
 }
-#btn-add:active { background: #1d4ed8; }
+#btn-add:hover { background: var(--primary-h); }
+#btn-add:active { background: var(--dark-br); box-shadow: none; }
 
 /* ── SANDBOX BANNER ────────────────────────── */
 #sandbox-banner {
-  display: none; background: #f59e0b; color: #fff;
+  display: none; background: #1a2e12; color: var(--accent);
   text-align: center; font-size: 12px; font-weight: 700;
   letter-spacing: .5px; padding: 4px 10px;
   align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px;
+  border-bottom: 1px solid var(--dark-br);
 }
-body.sandbox #header { background: #fffbeb; border-bottom-color: #f59e0b; }
-body.sandbox #btn-add { background: #f59e0b; }
-body.sandbox #btn-add:active { background: #d97706; }
-body.sandbox .tab.active { color: #d97706; border-bottom-color: #d97706; }
-body.sandbox .tab.active .tab-badge { background: #fffbeb; color: #d97706; }
+body.sandbox #header { border-bottom-color: var(--dark-br); }
+body.sandbox #btn-add { background: var(--dark-br); box-shadow: none; }
+body.sandbox .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+body.sandbox .tab.active .tab-badge { background: var(--primary-bg); color: var(--accent); }
 body.sandbox #sandbox-banner { display: flex; }
 
 /* ── SEARCH BAR ─────────────────────────────── */
@@ -104,11 +111,13 @@ body.sandbox #sandbox-banner { display: flex; }
 }
 #search-bar.open { display: block; }
 #search-input {
-  width: 100%; padding: 8px 12px; border: 1.5px solid var(--border);
-  border-radius: 20px; font-size: 14px; font-family: inherit;
+  width: 100%; padding: 9px 14px; border: 1.5px solid var(--border);
+  border-radius: 24px; font-size: 14px; font-family: inherit;
   outline: none; background: var(--bg); color: var(--text);
+  transition: border-color .15s;
 }
-#search-input:focus { border-color: var(--primary); background: var(--surface); }
+#search-input::placeholder { color: var(--text-3); }
+#search-input:focus { border-color: var(--primary); background: var(--surface-2); }
 
 /* ── TABS ──────────────────────────────────── */
 #tabs {
@@ -120,23 +129,24 @@ body.sandbox #sandbox-banner { display: flex; }
 }
 #tabs::-webkit-scrollbar { display: none; }
 .tab {
-  padding: 11px 16px;
-  font-size: 14px; font-weight: 500;
-  color: var(--text-2);
+  padding: 12px 20px;
+  font-size: 13px; font-weight: 600; letter-spacing: .2px;
+  color: var(--text-3);
   border-bottom: 2px solid transparent;
   cursor: pointer; white-space: nowrap;
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 7px;
   flex-shrink: 0;
   transition: color .15s;
 }
-.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab:hover { color: var(--text-2); }
+.tab.active { color: var(--accent); border-bottom-color: var(--primary); }
 .tab-badge {
-  font-size: 11px; font-weight: 700;
-  background: #e5e7eb; color: #6b7280;
+  font-size: 10px; font-weight: 700;
+  background: var(--border-2); color: var(--text-3);
   padding: 1px 6px; border-radius: 10px;
   min-width: 18px; text-align: center;
 }
-.tab.active .tab-badge { background: var(--primary-bg); color: var(--primary); }
+.tab.active .tab-badge { background: var(--primary-bg); color: var(--accent); }
 
 /* ── CONTENT ───────────────────────────────── */
 #content {
@@ -147,9 +157,9 @@ body.sandbox #sandbox-banner { display: flex; }
 
 /* ── SECTION HEADER ────────────────────────── */
 .sec-head {
-  font-size: 11px; font-weight: 700; letter-spacing: .6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .8px;
   text-transform: uppercase; color: var(--text-3);
-  margin: 18px 0 8px 2px;
+  margin: 18px 0 6px 2px;
 }
 .sec-head:first-child { margin-top: 4px; }
 
@@ -158,62 +168,93 @@ body.sandbox #sandbox-banner { display: flex; }
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  margin-bottom: 7px;
-  border-left: 4px solid #e4e7ec;
+  margin-bottom: 6px;
+  border-left: 4px solid var(--border-2);
   overflow: hidden;
+  transition: background .1s;
 }
+.card:hover { background: var(--surface-2); }
 .card[data-type="TODO"]      { border-left-color: var(--c-todo); }
 .card[data-type="QUESTION"]  { border-left-color: var(--c-question); }
 .card[data-type="MEMO"]      { border-left-color: var(--c-memo); }
 .card[data-type="MEETING"]   { border-left-color: var(--c-meeting); }
 .card[data-type="DECISION"]  { border-left-color: var(--c-decision); }
 .card[data-type="FOLLOW-UP"] { border-left-color: var(--c-followup); }
-.card.done    { opacity: .48; }
-.card.overdue { background: #fff5f5; border-left-color: #dc2626 !important; }
+.card.done    { opacity: .35; }
+.card.overdue { background: #1a0a0a; border-left-color: #f87171 !important; }
 
 .card-main {
-  padding: 10px 10px 10px 12px;
-  display: flex; align-items: flex-start; gap: 9px;
+  padding: 11px 10px 11px 13px;
+  display: flex; align-items: flex-start; gap: 10px;
 }
 .card-check {
-  width: 20px; height: 20px; border: 2px solid #d1d5db;
+  width: 20px; height: 20px; border: 2px solid var(--border-2);
   border-radius: 50%; cursor: pointer; flex-shrink: 0; margin-top: 1px;
   display: flex; align-items: center; justify-content: center;
   transition: all .15s;
 }
-.card-check:hover { border-color: var(--primary); }
+.card-check:hover { border-color: var(--primary); background: var(--primary-bg); }
 .card.done .card-check { background: var(--primary); border-color: var(--primary); }
 .card.done .card-check::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; }
 
 .card-body { flex: 1; min-width: 0; }
-.card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 3px; }
+.card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
 
 .type-badge {
-  font-size: 10px; font-weight: 700; letter-spacing: .3px;
+  font-size: 10px; font-weight: 700; letter-spacing: .4px;
   padding: 2px 6px; border-radius: 4px; text-transform: uppercase;
   white-space: nowrap;
 }
-.type-badge-TODO      { background: #eff6ff; color: var(--c-todo); }
-.type-badge-QUESTION  { background: #fffbeb; color: var(--c-question); }
-.type-badge-MEMO      { background: #f9fafb; color: var(--c-memo); }
-.type-badge-MEETING   { background: #ecfdf5; color: var(--c-meeting); }
-.type-badge-DECISION  { background: #f5f3ff; color: var(--c-decision); }
-.type-badge-FOLLOW-UP { background: #fef2f2; color: var(--c-followup); }
+.type-badge-TODO      { background: rgba(93,214,44,.12);  color: var(--c-todo); }
+.type-badge-QUESTION  { background: rgba(240,192,64,.12); color: var(--c-question); }
+.type-badge-MEMO      { background: rgba(128,128,128,.14); color: var(--c-memo); }
+.type-badge-MEETING   { background: rgba(56,189,248,.12); color: var(--c-meeting); }
+.type-badge-DECISION  { background: rgba(192,132,252,.12); color: var(--c-decision); }
+.type-badge-FOLLOW-UP { background: rgba(248,113,113,.12); color: var(--c-followup); }
 
 .dl-badge {
   font-size: 11px; font-weight: 500;
-  padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+  padding: 2px 7px; border-radius: 20px; white-space: nowrap;
 }
-.dl-overdue { background: #fef2f2; color: #dc2626; }
-.dl-today   { background: #fffbeb; color: #d97706; }
-.dl-soon    { background: #eff6ff; color: #2563eb; }
-.dl-later   { background: #f9fafb; color: #6b7280; }
+.dl-overdue   { background: rgba(248,113,113,.15); color: #f87171; }
+.dl-today     { background: rgba(93,214,44,.15);   color: var(--accent); }
+.dl-soon      { background: rgba(93,214,44,.1);    color: var(--primary); }
+.dl-later     { background: rgba(128,128,128,.14); color: var(--slate); }
+.dl-escalated { background: rgba(51,116,24,.3);    color: var(--accent); font-style: italic; }
+
+/* ── COMBINED TODO VIEW ─────────────────────── */
+.todo-section { margin-bottom: 2px; }
+.todo-section-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 4px 5px;
+  font-size: 10px; font-weight: 700; letter-spacing: .8px;
+  color: var(--text-3); text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  position: sticky; top: 0; background: var(--bg); z-index: 2;
+}
+.todo-section-head .sec-count {
+  background: var(--border-2); color: var(--text-3);
+  border-radius: 10px; padding: 1px 7px; font-size: 10px; font-weight: 700;
+}
+.todo-section-head.sec-today { color: var(--accent); }
+.todo-section-head.sec-today .sec-count { background: var(--primary-bg); color: var(--accent); }
+.todo-section-head.sec-overdue { color: #f87171; }
+.todo-section-head.sec-overdue .sec-count { background: rgba(248,113,113,.12); color: #f87171; }
+.todo-section-head.sec-week { color: var(--primary); }
+.todo-section-head.sec-week .sec-count { background: var(--primary-bg); color: var(--primary); }
+.todo-section-empty {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 10px 14px; font-size: 12px; color: var(--text-3); font-style: italic;
+  margin-bottom: 6px;
+}
 
 .card-title {
-  font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--text);
+  font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--text);
   word-break: break-word;
 }
-.card.done .card-title { text-decoration: line-through; color: var(--text-2); }
+.card.done .card-title { text-decoration: line-through; color: var(--text-3); }
 
 .card-body-text {
   font-size: 13px; color: var(--text-2); line-height: 1.55;
@@ -223,33 +264,33 @@ body.sandbox #sandbox-banner { display: flex; }
 
 .card-actions { display: flex; gap: 1px; flex-shrink: 0; margin-left: 4px; }
 .card-btn {
-  width: 30px; height: 30px;
+  width: 28px; height: 28px;
   border: none; background: transparent; cursor: pointer;
   border-radius: 7px; color: var(--text-3); font-size: 14px;
   display: flex; align-items: center; justify-content: center;
   transition: background .1s, color .1s;
 }
-.card-btn:hover { background: var(--bg); color: var(--text-2); }
+.card-btn:hover { background: var(--border); color: var(--text-2); }
 
 /* ── EMPTY STATE ───────────────────────────── */
 .empty {
   text-align: center; padding: 60px 20px 40px;
-  color: var(--text-2);
+  color: var(--text-3);
 }
-.empty-icon { font-size: 38px; margin-bottom: 10px; }
-.empty h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
-.empty p { font-size: 14px; }
+.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: .6; }
+.empty h3 { font-size: 15px; font-weight: 600; color: var(--text-2); margin-bottom: 5px; }
+.empty p { font-size: 13px; }
 
 /* ── MEMO THREAD ───────────────────────────── */
 .thread-group { margin-bottom: 14px; }
 .thread-header {
-  font-size: 11px; font-weight: 700; letter-spacing: .5px;
-  text-transform: uppercase; color: var(--text-3);
+  font-size: 10px; font-weight: 700; letter-spacing: .6px;
+  text-transform: uppercase; color: var(--accent-dim);
   margin-bottom: 6px; padding-left: 4px;
   display: flex; align-items: center; gap: 6px;
 }
 .thread-line { flex: 1; height: 1px; background: var(--border); }
-.card.in-thread { border-left-color: #6b7280 !important; margin-left: 12px; }
+.card.in-thread { border-left-color: var(--slate) !important; margin-left: 12px; }
 
 /* ── DONE DATE ──────────────────────────────── */
 .done-date { font-size: 11px; color: var(--text-3); font-style: italic; }
@@ -269,7 +310,7 @@ body.sandbox #sandbox-banner { display: flex; }
   font-size: 24px; background: var(--bg); transition: border-color .15s, color .15s;
   user-select: none;
 }
-.memo-img-add:hover { border-color: var(--primary); color: var(--primary); }
+.memo-img-add:hover { border-color: var(--accent); color: var(--accent); }
 #lightbox {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85);
   z-index: 9999; align-items: center; justify-content: center;
@@ -289,7 +330,7 @@ body.sandbox #sandbox-banner { display: flex; }
   padding: 3px 0;
 }
 .subtask-check {
-  width: 16px; height: 16px; border: 1.5px solid #d1d5db;
+  width: 15px; height: 15px; border: 1.5px solid var(--border-2);
   border-radius: 4px; cursor: pointer; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: all .12s;
@@ -309,16 +350,18 @@ body.sandbox #sandbox-banner { display: flex; }
 
 /* ── SHOW DONE TOGGLE ──────────────────────── */
 #show-done-toggle {
-  text-align: center; padding: 16px 8px 4px;
-  font-size: 13px; color: var(--text-3); cursor: pointer;
+  text-align: center; padding: 18px 8px 6px;
+  font-size: 12px; color: var(--text-3); cursor: pointer;
+  letter-spacing: .3px;
 }
-#show-done-toggle:hover { color: var(--text-2); }
+#show-done-toggle:hover { color: var(--accent); }
 
 /* ── MODAL OVERLAY ─────────────────────────── */
 #overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.4); z-index: 200;
+  background: rgba(0,0,0,.65); z-index: 200;
   align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(2px);
 }
 #overlay.open { display: flex; }
 @media (min-width: 600px) {
@@ -327,74 +370,78 @@ body.sandbox #sandbox-banner { display: flex; }
 
 /* ── MODAL ─────────────────────────────────── */
 #modal {
-  background: var(--surface);
+  background: var(--surface-2);
+  border-top: 1px solid var(--border-2);
   border-radius: 20px 20px 0 0;
-  padding: 16px 18px 28px;
+  padding: 16px 18px 32px;
   width: 100%; max-height: 92vh; overflow-y: auto;
-  animation: slideUp .2s ease-out;
+  animation: slideUp .22s cubic-bezier(.22,.61,.36,1);
 }
 @media (min-width: 600px) {
-  #modal { border-radius: var(--radius); max-width: 460px; max-height: 85vh; }
+  #modal { border-radius: var(--radius); max-width: 460px; max-height: 85vh; border: 1px solid var(--border-2); }
 }
-@keyframes slideUp { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
 
 .modal-handle {
-  width: 36px; height: 4px; background: var(--border);
-  border-radius: 2px; margin: 0 auto 18px;
+  width: 32px; height: 3px; background: var(--border-2);
+  border-radius: 2px; margin: 0 auto 20px;
 }
 @media (min-width: 600px) { .modal-handle { display: none; } }
 
-.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 18px; color: var(--text); }
 
 /* Type selector */
 .type-grid {
-  display: grid; grid-template-columns: repeat(3,1fr); gap: 7px;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 6px;
   margin-bottom: 18px;
 }
 .type-opt {
   padding: 9px 6px;
-  border: 2px solid var(--border); border-radius: 10px;
+  border: 1.5px solid var(--border); border-radius: 10px;
   cursor: pointer; text-align: center;
-  transition: all .12s;
+  transition: all .12s; background: var(--surface);
 }
-.type-opt-icon { font-size: 17px; margin-bottom: 2px; }
-.type-opt-name { font-size: 10px; font-weight: 700; color: var(--text-2); letter-spacing: .2px; }
+.type-opt:hover { border-color: var(--border-2); background: var(--surface-2); }
+.type-opt-icon { font-size: 16px; margin-bottom: 3px; }
+.type-opt-name { font-size: 9px; font-weight: 700; color: var(--text-3); letter-spacing: .4px; text-transform: uppercase; }
 
-.type-opt.sel[data-t="TODO"]      { border-color: var(--c-todo);     background: #eff6ff; }
-.type-opt.sel[data-t="QUESTION"]  { border-color: var(--c-question); background: #fffbeb; }
-.type-opt.sel[data-t="MEMO"]      { border-color: var(--c-memo);     background: #f9fafb; }
-.type-opt.sel[data-t="MEETING"]   { border-color: var(--c-meeting);  background: #ecfdf5; }
-.type-opt.sel[data-t="DECISION"]  { border-color: var(--c-decision); background: #f5f3ff; }
-.type-opt.sel[data-t="FOLLOW-UP"] { border-color: var(--c-followup); background: #fef2f2; }
+.type-opt.sel[data-t="TODO"]      { border-color: var(--c-todo);     background: rgba(93,214,44,.1); }
+.type-opt.sel[data-t="QUESTION"]  { border-color: var(--c-question); background: rgba(240,192,64,.1); }
+.type-opt.sel[data-t="MEMO"]      { border-color: var(--c-memo);     background: rgba(128,128,128,.1); }
+.type-opt.sel[data-t="MEETING"]   { border-color: var(--c-meeting);  background: rgba(56,189,248,.1); }
+.type-opt.sel[data-t="DECISION"]  { border-color: var(--c-decision); background: rgba(192,132,252,.1); }
+.type-opt.sel[data-t="FOLLOW-UP"] { border-color: var(--c-followup); background: rgba(248,113,113,.1); }
 
 /* Form */
 .form-row { margin-bottom: 14px; }
-.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 5px; }
+.form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-3); margin-bottom: 6px; letter-spacing: .3px; text-transform: uppercase; }
 .form-input, .form-textarea {
-  width: 100%; padding: 9px 11px;
+  width: 100%; padding: 10px 12px;
   border: 1.5px solid var(--border); border-radius: 9px;
   font-size: 15px; font-family: inherit; color: var(--text);
   background: var(--surface); outline: none;
   transition: border-color .15s;
 }
-.form-input:focus, .form-textarea:focus { border-color: var(--primary); }
+.form-input:focus, .form-textarea:focus { border-color: var(--primary); background: var(--surface-2); }
 .form-textarea { resize: vertical; min-height: 72px; }
 
 /* Deadline pills */
-.dl-pills { display: flex; gap: 7px; flex-wrap: wrap; }
+.dl-pills { display: flex; gap: 6px; flex-wrap: wrap; }
 .dl-pill {
   padding: 5px 12px; border: 1.5px solid var(--border);
-  border-radius: 20px; font-size: 13px; font-weight: 500;
-  color: var(--text-2); cursor: pointer; white-space: nowrap;
+  border-radius: 20px; font-size: 12px; font-weight: 600;
+  color: var(--text-3); cursor: pointer; white-space: nowrap;
   transition: all .12s; background: var(--surface);
 }
-.dl-pill.sel { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+.dl-pill:hover { border-color: var(--border-2); color: var(--text-2); }
+.dl-pill.sel { border-color: var(--primary); background: var(--primary-bg); color: var(--accent); }
 .dl-pill-date {
   padding: 4px 10px; border: 1.5px solid var(--border);
-  border-radius: 20px; font-size: 13px; font-weight: 500;
-  color: var(--text-2); cursor: pointer; background: var(--surface);
+  border-radius: 20px; font-size: 12px; font-weight: 500;
+  color: var(--text-3); cursor: pointer; background: var(--surface);
   outline: none; font-family: inherit;
   transition: border-color .12s;
+  color-scheme: dark;
 }
 .dl-pill-date:focus { border-color: var(--primary); }
 
@@ -403,20 +450,21 @@ body.sandbox #sandbox-banner { display: flex; }
   width: 100%; padding: 13px;
   background: var(--primary); color: #fff;
   border: none; border-radius: 11px;
-  font-size: 15px; font-weight: 600; cursor: pointer;
+  font-size: 15px; font-weight: 700; cursor: pointer;
   font-family: inherit; transition: background .12s;
-  margin-top: 4px;
+  margin-top: 4px; letter-spacing: .2px;
+  box-shadow: 0 2px 12px rgba(93,214,44,.25);
 }
-.btn-save:hover { background: #1d4ed8; }
-.btn-save:active { background: #1e40af; }
+.btn-save:hover { background: var(--primary-h); }
+.btn-save:active { background: var(--dark-br); box-shadow: none; }
 .btn-del {
   width: 100%; padding: 12px;
-  background: transparent; color: #dc2626;
-  border: 1.5px solid #fecaca; border-radius: 11px;
+  background: transparent; color: #f87171;
+  border: 1.5px solid rgba(248,113,113,.3); border-radius: 11px;
   font-size: 14px; font-weight: 500; cursor: pointer;
-  font-family: inherit; transition: background .12s; margin-top: 8px;
+  font-family: inherit; transition: background .12s, border-color .12s; margin-top: 8px;
 }
-.btn-del:hover { background: #fef2f2; }
+.btn-del:hover { background: rgba(248,113,113,.08); border-color: rgba(248,113,113,.5); }
 
 /* ── SIGN-IN SCREEN ────────────────────────── */
 #signin-screen {
@@ -426,55 +474,63 @@ body.sandbox #sandbox-banner { display: flex; }
   padding: 32px 24px;
 }
 #signin-screen.on { display: flex; }
-.signin-logo { font-size: 44px; font-weight: 800; letter-spacing: -2px; margin-bottom: 6px; }
-.signin-logo span { color: var(--primary); }
-.signin-sub { font-size: 15px; color: var(--text-2); margin-bottom: 36px; text-align: center; line-height: 1.4; }
+.signin-logo {
+  font-size: 48px; font-weight: 800; letter-spacing: -2px; margin-bottom: 6px;
+  color: var(--text);
+}
+.signin-logo span { color: var(--accent); }
+.signin-sub { font-size: 14px; color: var(--text-3); margin-bottom: 40px; text-align: center; line-height: 1.5; }
 .signin-card {
-  background: var(--surface); border-radius: 16px;
-  padding: 26px 24px; width: 100%; max-width: 360px;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: 18px; padding: 26px 24px; width: 100%; max-width: 360px;
   box-shadow: var(--shadow-lg);
 }
-.signin-card h2 { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+.signin-card h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
 .setup-info {
   font-size: 13px; color: var(--text-2); line-height: 1.6;
   background: var(--bg); padding: 12px; border-radius: 8px; margin-bottom: 14px;
+  border: 1px solid var(--border);
 }
-.setup-info a { color: var(--primary); text-decoration: none; }
+.setup-info a { color: var(--accent); text-decoration: none; }
 .setup-info a:hover { text-decoration: underline; }
+.setup-info code { background: var(--border); color: var(--accent); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
 .setup-sep { text-align: center; font-size: 12px; color: var(--text-3); margin: 12px 0; }
 .btn-google {
-  width: 100%; padding: 11px 16px;
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 10px; font-size: 14px; font-weight: 600;
+  width: 100%; padding: 12px 16px;
+  background: var(--surface); border: 1.5px solid var(--border-2);
+  border-radius: 11px; font-size: 14px; font-weight: 600;
   cursor: pointer; display: flex; align-items: center;
   justify-content: center; gap: 10px; color: var(--text);
-  font-family: inherit; transition: background .12s;
+  font-family: inherit; transition: background .12s, border-color .12s;
 }
-.btn-google:hover { background: var(--bg); }
+.btn-google:hover { background: var(--surface-2); border-color: var(--primary); }
 .btn-google svg { flex-shrink: 0; }
 
 /* ── TOAST ─────────────────────────────────── */
 #toast {
-  position: fixed; bottom: 20px; left: 50%;
-  transform: translateX(-50%) translateY(60px);
-  background: #1a1a1a; color: #fff;
-  padding: 9px 18px; border-radius: 20px;
-  font-size: 14px; z-index: 500;
-  transition: transform .2s; white-space: nowrap;
-  pointer-events: auto;
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(70px);
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border-2);
+  padding: 10px 20px; border-radius: 24px;
+  font-size: 13px; font-weight: 500; z-index: 500;
+  transition: transform .22s cubic-bezier(.22,.61,.36,1);
+  white-space: nowrap; pointer-events: auto;
+  box-shadow: var(--shadow-lg);
 }
 #toast.show { transform: translateX(-50%) translateY(0); }
 
 /* ── LOADING ───────────────────────────────── */
 #loading {
   display: none; position: fixed; inset: 0;
-  background: rgba(255,255,255,.75); z-index: 400;
+  background: rgba(10,8,6,.7); z-index: 400;
   align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
 }
 #loading.on { display: flex; }
 .spinner {
-  width: 34px; height: 34px;
-  border: 3px solid var(--border);
+  width: 32px; height: 32px;
+  border: 2.5px solid var(--border-2);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin .7s linear infinite;
@@ -505,32 +561,33 @@ body.sandbox #sandbox-banner { display: flex; }
     <button id="btn-signin-small" onclick="startSignIn()" style="display:none">Kirjaudu</button>
     <div id="user-menu" style="display:none;position:relative">
       <div id="user-avatar" onclick="toggleUserMenu()"
-           style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;
-                  font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;
+           style="width:32px;height:32px;border-radius:50%;background:var(--dark-br);color:var(--accent);
+                  border:1.5px solid var(--primary);
+                  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
                   cursor:pointer;user-select:none" title="Tili">T</div>
-      <div id="user-dropdown" style="display:none;position:absolute;right:0;top:40px;
-           background:var(--surface);border:1px solid var(--border);border-radius:10px;
-           box-shadow:var(--shadow-lg);min-width:160px;overflow:hidden;z-index:150">
-        <div id="user-email" style="padding:10px 14px;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--border)"></div>
+      <div id="user-dropdown" style="display:none;position:absolute;right:0;top:42px;
+           background:var(--surface-2);border:1px solid var(--border-2);border-radius:12px;
+           box-shadow:var(--shadow-lg);min-width:180px;overflow:hidden;z-index:150">
+        <div id="user-email" style="padding:10px 14px;font-size:11px;color:var(--text-3);border-bottom:1px solid var(--border)"></div>
         <div onclick="toggleSandbox()" id="sandbox-menu-item"
-             style="padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border)"
-             onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+             style="padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text-2)"
+             onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
           🧪 Sandbox-tila
         </div>
-        <div onclick="signOut()" style="padding:10px 14px;font-size:14px;cursor:pointer;color:#dc2626"
-             onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
+        <div onclick="signOut()" style="padding:10px 14px;font-size:13px;cursor:pointer;color:#f87171"
+             onmouseover="this.style.background='rgba(248,113,113,.08)'" onmouseout="this.style.background=''">
           Vaihda tili / kirjaudu ulos
         </div>
       </div>
     </div>
     <button id="btn-search" onclick="toggleSearch()" title="Haku"
-            style="width:36px;height:36px;border-radius:10px;border:1.5px solid var(--border);
-                   background:var(--surface);font-size:16px;cursor:pointer;color:var(--text-2);
-                   display:flex;align-items:center;justify-content:center">🔍</button>
+            style="width:34px;height:34px;border-radius:9px;border:1px solid var(--border-2);
+                   background:var(--surface-2);font-size:15px;cursor:pointer;color:var(--text-3);
+                   display:flex;align-items:center;justify-content:center;transition:color .12s">🔍</button>
     <button id="btn-fetch" onclick="fetchEmails()" title="Hae sähköpostit"
-            style="display:none;padding:0 12px;height:36px;border-radius:10px;border:1.5px solid var(--border);
-                   background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;color:var(--text-2);
-                   white-space:nowrap">✉ Hae</button>
+            style="display:none;padding:0 12px;height:34px;border-radius:9px;border:1px solid var(--border-2);
+                   background:var(--surface-2);font-size:12px;font-weight:700;cursor:pointer;color:var(--accent);
+                   white-space:nowrap;letter-spacing:.2px">✉ Hae</button>
     <button id="btn-add" onclick="openAdd()" title="Uusi merkintä">+</button>
   </div>
 </div>
@@ -603,7 +660,7 @@ const SANDBOX_FILE_NAME = 'workos_sandbox.json';
 // ═══════════════════════════════════════════════
 const S = {
   items: [],
-  tab: 'today',
+  tab: 'todo',
   showDone: false,
   searchQuery: '',
   sandbox: localStorage.getItem('wos_sandbox') === '1',
@@ -1187,31 +1244,11 @@ function applySearch(items) {
 }
 
 function tabItems(tab) {
-  const t = today(), we = weekEnd();
   const visible = S.showDone ? S.items : S.items.filter(x => x.status === 'open');
-
   let result;
   switch(tab) {
-    case 'today':
-      result = visible.filter(x => {
-        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
-        const dl = parseDate(x.deadline);
-        return dl && dl <= t;
-      });
-      break;
-    case 'week':
-      result = visible.filter(x => {
-        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
-        const dl = parseDate(x.deadline);
-        return dl && dl > t && dl <= we;
-      });
-      break;
-    case 'later':
-      result = visible.filter(x => {
-        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
-        const dl = parseDate(x.deadline);
-        return !dl || dl > we;
-      });
+    case 'todo':
+      result = visible.filter(x => x.type !== 'QUESTION' && !MEMO_TYPES.has(x.type));
       break;
     case 'questions':
       result = S.showDone ? S.items.filter(x => x.type === 'QUESTION')
@@ -1228,27 +1265,10 @@ function tabItems(tab) {
 }
 
 function openItemCount(tab) {
-  const t = today(), we = weekEnd();
   const open = S.items.filter(x => x.status === 'open');
   switch(tab) {
-    case 'today':
-      return open.filter(x => {
-        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
-        const dl = parseDate(x.deadline);
-        return dl && dl <= t;
-      }).length;
-    case 'week':
-      return open.filter(x => {
-        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
-        const dl = parseDate(x.deadline);
-        return dl && dl > t && dl <= we;
-      }).length;
-    case 'later':
-      return open.filter(x => {
-        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
-        const dl = parseDate(x.deadline);
-        return !dl || dl > we;
-      }).length;
+    case 'todo':
+      return open.filter(x => x.type !== 'QUESTION' && !MEMO_TYPES.has(x.type)).length;
     case 'questions':
       return open.filter(x => x.type === 'QUESTION').length;
     case 'memos':
@@ -1261,12 +1281,35 @@ function openItemCount(tab) {
 // RENDER
 // ═══════════════════════════════════════════════
 const TABS = [
-  { id:'today',     label:'Tänään' },
-  { id:'week',      label:'Tällä viikolla' },
-  { id:'later',     label:'Myöhemmin' },
-  { id:'questions', label:'Avoimet kysymykset' },
+  { id:'todo',      label:'Tehtävät' },
+  { id:'questions', label:'Kysymykset' },
   { id:'memos',     label:'Memot' }
 ];
+
+// Escalation: items with no deadline escalate based on age
+const ESCALATE_TO_WEEK_DAYS = 14;  // 2 weeks → show in "this week"
+const ESCALATE_TO_TODAY_DAYS = 21; // 3 weeks → show in "today"
+
+function itemAgeDays(item) {
+  if (!item.createdAt) return 0;
+  return (Date.now() - new Date(item.createdAt).getTime()) / 86400000;
+}
+
+// Returns 'today'|'week'|'later' for display bucketing
+function effectiveSection(item) {
+  const t = today(), we = weekEnd();
+  const dl = item.deadline ? parseDate(item.deadline) : null;
+  if (dl) {
+    if (dl <= t) return 'today';
+    if (dl <= we) return 'week';
+    return 'later';
+  }
+  // No deadline — escalate by age
+  const age = itemAgeDays(item);
+  if (age >= ESCALATE_TO_TODAY_DAYS) return 'today';
+  if (age >= ESCALATE_TO_WEEK_DAYS)  return 'week';
+  return 'later';
+}
 
 function render() { renderTabs(); renderContent(); }
 
@@ -1281,12 +1324,81 @@ function renderTabs() {
 function renderContent() {
   const items = tabItems(S.tab);
   const container = document.getElementById('content');
+  let html = '';
 
+  if (S.tab === 'todo') {
+    if (S.searchQuery && items.length === 0) {
+      container.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><h3>Ei hakutuloksia</h3><p>Haulla "${esc(S.searchQuery)}" ei löydy mitään.</p></div>`;
+      appendDoneToggle(container);
+      return;
+    }
+
+    const t = today();
+    const overdue  = items.filter(x => x.status==='open' && effectiveSection(x)==='today' && x.deadline && parseDate(x.deadline) < t);
+    const todayDue = items.filter(x => x.status==='open' && effectiveSection(x)==='today' && !(x.deadline && parseDate(x.deadline) < t));
+    const weekItems = items.filter(x => x.status==='open' && effectiveSection(x)==='week');
+    const laterItems = items.filter(x => x.status==='open' && effectiveSection(x)==='later');
+    const doneItems  = items.filter(x => x.status==='done');
+
+    function sectionHtml(label, cls, list, emptyText) {
+      const count = list.length;
+      const countBadge = count > 0 ? `<span class="sec-count">${count}</span>` : '';
+      const inner = count > 0 ? list.map(cardHtml).join('') : (emptyText ? `<div class="todo-section-empty">${emptyText}</div>` : '');
+      return `<div class="todo-section">
+        <div class="todo-section-head ${cls}">${label}${countBadge}</div>
+        ${inner}
+      </div>`;
+    }
+
+    if (overdue.length)   html += sectionHtml('⚠ Myöhässä', 'sec-overdue', overdue, '');
+    html += sectionHtml('Tänään', 'sec-today', todayDue, 'Ei tehtäviä — hyvin tehty!');
+
+    // Week section: group by date for items with a real deadline, show escalated last
+    if (weekItems.length) {
+      const byDate = {};
+      const escalated = [];
+      weekItems.forEach(x => {
+        if (!x.deadline) { escalated.push(x); return; }
+        const k = x.deadline;
+        if (!byDate[k]) byDate[k] = [];
+        byDate[k].push(x);
+      });
+      let weekHtml = '';
+      Object.keys(byDate).sort().forEach(k => {
+        const d = parseDate(k);
+        const label = d ? d.toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'}) : k;
+        weekHtml += `<div class="sec-head" style="font-size:11px;padding:6px 14px 3px;color:var(--text-3)">${label.charAt(0).toUpperCase()+label.slice(1)}</div>`;
+        weekHtml += byDate[k].map(cardHtml).join('');
+      });
+      if (escalated.length) {
+        weekHtml += `<div class="sec-head" style="font-size:11px;padding:6px 14px 3px;color:#c2410c">⏳ Nostettu — ei deadlinea</div>`;
+        weekHtml += escalated.map(cardHtml).join('');
+      }
+      html += `<div class="todo-section">
+        <div class="todo-section-head sec-week">Tällä viikolla<span class="sec-count">${weekItems.length}</span></div>
+        ${weekHtml}
+      </div>`;
+    } else {
+      html += `<div class="todo-section">
+        <div class="todo-section-head sec-week">Tällä viikolla<span class="sec-count" style="opacity:.4">0</span></div>
+        <div class="todo-section-empty">Ei tehtäviä tälle viikolle.</div>
+      </div>`;
+    }
+
+    html += sectionHtml('Myöhemmin', '', laterItems, 'Ei tulevia tehtäviä.');
+
+    if (S.showDone && doneItems.length) {
+      html += sectionHtml('✅ Valmiit', '', doneItems, '');
+    }
+
+    container.innerHTML = html;
+    appendDoneToggle(container);
+    return;
+  }
+
+  // ── Non-todo tabs ──────────────────────────
   if (items.length === 0) {
     const msgs = {
-      today:     ['✅','Ei tehtäviä tänään','Hyvin tehty, tai lisää uusi!'],
-      week:      ['📅','Ei tehtäviä tälle viikolle','Viikko on avoin.'],
-      later:     ['🔮','Ei tulevia tehtäviä','Kaikki hallinnassa.'],
       questions: ['❓','Ei avoimia kysymyksiä','Kaikki selvitetty!'],
       memos:     ['📝','Ei memoja','Lisää memo tai päätös!']
     };
@@ -1299,56 +1411,19 @@ function renderContent() {
     return;
   }
 
-  let html = '';
-
-  if (S.tab === 'today') {
-    const t = today();
-    const overdue = items.filter(x => parseDate(x.deadline) < t);
-    const due     = items.filter(x => isSameDay(parseDate(x.deadline), t));
-    if (overdue.length) {
-      html += `<div class="sec-head">⚠️ Myöhässä</div>`;
-      html += overdue.map(cardHtml).join('');
-    }
-    if (due.length) {
-      if (overdue.length) html += `<div class="sec-head">Tänään</div>`;
-      html += due.map(cardHtml).join('');
-    }
-  } else if (S.tab === 'week') {
-    const groups = {};
+  if (S.tab === 'memos') {
+    const threads = {}, noThread = [];
     items.forEach(x => {
-      const k = x.deadline || '';
-      if (!groups[k]) groups[k] = [];
-      groups[k].push(x);
+      if (x.threadId) { if (!threads[x.threadId]) threads[x.threadId]=[]; threads[x.threadId].push(x); }
+      else noThread.push(x);
     });
-    Object.keys(groups).sort().forEach(k => {
-      const d = parseDate(k);
-      const label = d ? d.toLocaleDateString('fi-FI', {weekday:'long',day:'numeric',month:'long'}) : '—';
-      html += `<div class="sec-head">${label.charAt(0).toUpperCase()+label.slice(1)}</div>`;
-      html += groups[k].map(cardHtml).join('');
-    });
-  } else if (S.tab === 'memos') {
-    // Group by threadId; items without threadId each stand alone
-    const threads = {};
-    const noThread = [];
-    items.forEach(x => {
-      if (x.threadId) {
-        if (!threads[x.threadId]) threads[x.threadId] = [];
-        threads[x.threadId].push(x);
-      } else {
-        noThread.push(x);
-      }
-    });
-    // Threaded groups first
     Object.keys(threads).forEach(tid => {
-      const group = threads[tid];
-      group.sort((a,b) => (a.createdAt||'').localeCompare(b.createdAt||''));
-      const firstTitle = esc(group[0].title);
+      const group = threads[tid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
       html += `<div class="thread-group">
-        <div class="thread-header">🔗 ${firstTitle} (${group.length})</div>
-        ${group.map(x => `<div class="card in-thread">${cardHtml(x, true)}</div>`).join('')}
+        <div class="thread-header">🔗 ${esc(group[0].title)} (${group.length})</div>
+        ${group.map(x=>`<div class="card in-thread">${cardHtml(x,true)}</div>`).join('')}
       </div>`;
     });
-    // Non-threaded
     noThread.forEach(x => { html += cardHtml(x); });
   } else {
     html = items.map(cardHtml).join('');
@@ -1360,15 +1435,10 @@ function renderContent() {
 }
 
 function doneCountForTab(tab) {
-  const t = today(), we = weekEnd();
   const done = S.items.filter(x => x.status === 'done');
   switch(tab) {
-    case 'today':
-      return done.filter(x => { if (x.type==='QUESTION'||MEMO_TYPES.has(x.type)) return false; const dl=parseDate(x.deadline); return dl && dl<=t; }).length;
-    case 'week':
-      return done.filter(x => { if (x.type==='QUESTION'||MEMO_TYPES.has(x.type)) return false; const dl=parseDate(x.deadline); return dl && dl>t && dl<=we; }).length;
-    case 'later':
-      return done.filter(x => { if (x.type==='QUESTION'||MEMO_TYPES.has(x.type)) return false; const dl=parseDate(x.deadline); return !dl || dl>we; }).length;
+    case 'todo':
+      return done.filter(x => x.type !== 'QUESTION' && !MEMO_TYPES.has(x.type)).length;
     case 'questions':
       return done.filter(x => x.type==='QUESTION').length;
     case 'memos':
@@ -1401,6 +1471,13 @@ function cardHtml(item, inThread) {
   const hasSubs = subs.length > 0;
   const subsDone = subs.filter(s => s.status === 'done').length;
   const hasContent = !!item.content;
+
+  // Escalation badge: item has no deadline but is old enough to have moved up
+  const age = itemAgeDays(item);
+  const isEscalated = !item.deadline && !done && age >= ESCALATE_TO_WEEK_DAYS;
+  const escalatedDays = Math.floor(age);
+  const escalationHtml = isEscalated
+    ? `<span class="dl-badge dl-escalated" title="Avattu ${escalatedDays} päivää sitten, ei deadlinea">⏳ ${escalatedDays}pv</span>` : '';
 
   const badgeHtml = badge ? `<span class="dl-badge ${badge.cls}">${esc(badge.text)}</span>` : '';
   const progressHtml = hasSubs
@@ -1452,7 +1529,7 @@ function cardHtml(item, inThread) {
     <div class="card-body" style="min-width:0;flex:1">
       <div class="card-meta">
         <span class="type-badge type-badge-${esc(item.type)}">${esc(item.type)}</span>
-        ${badgeHtml}${progressHtml}${doneDateHtml}
+        ${badgeHtml}${escalationHtml}${progressHtml}${doneDateHtml}
       </div>
       <div class="card-title">${esc(item.title)}</div>
       ${contentHtml}
@@ -1794,7 +1871,12 @@ function doDelete(id) {
 // ═══════════════════════════════════════════════
 // UI HELPERS
 // ═══════════════════════════════════════════════
-function setTab(t) { S.tab = t; render(); }
+// Map legacy tab ids to new ones (today/week/later → todo)
+function setTab(t) {
+  const legacyMap = { today:'todo', week:'todo', later:'todo' };
+  S.tab = legacyMap[t] || t;
+  render();
+}
 function toggleShowDone() { S.showDone = !S.showDone; render(); }
 
 function toggleSandbox() {
