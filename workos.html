@@ -36,6 +36,98 @@
   --c-decision: #A78BFA;
   --c-followup: #F87171;
 }
+/* ══════════════════════════════════════════════
+   LIGHT THEME
+══════════════════════════════════════════════ */
+body.theme-light {
+  --bg:          #F5F6F8;
+  --surface:     #FFFFFF;
+  --surface-2:   #EEF0F3;
+  --border:      #E5E7EB;
+  --border-2:    #D1D5DB;
+  --text:        #111827;
+  --text-2:      #4B5563;
+  --text-3:      #9CA3AF;
+  --primary:     #18181B;
+  --primary-h:   #27272A;
+  --primary-bg:  #F4F4F5;
+  --accent:      #18181B;
+  --accent-dim:  #52525B;
+  --dark-br:     #D4D4D8;
+  --slate:       #9CA3AF;
+  --shadow:      0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-lg:   0 8px 28px rgba(0,0,0,.12);
+  color-scheme: light;
+}
+body.theme-light .card.overdue          { background: rgba(248,113,113,.07); }
+body.theme-light #sandbox-banner        { background: #FFF7ED; color: #92400E; border-bottom-color: #FDE68A; }
+body.theme-light .nav-item.active       { background: #E8E8EC; color: #18181B; }
+body.theme-light .nav-badge             { background: #E5E7EB; color: #6B7280; }
+body.theme-light .nav-item.active .nav-badge { background: #D4D4D8; color: #18181B; }
+body.theme-light .todo-section-head     { background: var(--bg); }
+body.theme-light .type-badge-TODO       { background: rgba(24,24,27,.07);   color: #18181B; }
+body.theme-light .type-badge-MEMO       { background: rgba(100,116,139,.1); color: #475569; }
+body.theme-light .dl-today              { background: rgba(24,24,27,.08);   color: #18181B; }
+body.theme-light .dl-soon               { background: rgba(24,24,27,.05);   color: #3F3F46; }
+body.theme-light .dl-later              { background: rgba(107,114,128,.1); color: #6B7280; }
+body.theme-light .dl-escalated          { background: rgba(24,24,27,.06);   color: #18181B; font-style:italic; }
+body.theme-light .btn-save              { background: #18181B; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+body.theme-light .btn-save:hover        { background: #27272A; }
+body.theme-light #btn-add               { background: #18181B; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+body.theme-light #btn-add:hover         { background: #27272A; }
+body.theme-light .dash-card             { box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+body.theme-light .next-action-item      { border-left-color: #18181B; }
+body.theme-light .filter-btn.active     { border-color: #18181B; background: #F4F4F5; color: #18181B; }
+body.theme-light .kf-btn.active         { background: #E8E8EC; color: #18181B; }
+body.theme-light .type-opt.sel[data-t="TODO"] { border-color: #18181B; background: rgba(24,24,27,.06); }
+body.theme-light .dl-overdue            { background: rgba(239,68,68,.1); color: #DC2626; }
+
+/* ══════════════════════════════════════════════
+   GREEN THEME
+══════════════════════════════════════════════ */
+body.theme-green {
+  --bg:          #EDF6E2;
+  --surface:     #FFFFFF;
+  --surface-2:   #E2F0D4;
+  --border:      #C5E09A;
+  --border-2:    #AECF7A;
+  --text:        #162808;
+  --text-2:      #3A6018;
+  --text-3:      #6B9944;
+  --primary:     #5BAF2A;
+  --primary-h:   #4E9823;
+  --primary-bg:  #DFF2C6;
+  --accent:      #5BAF2A;
+  --accent-dim:  #3D7A1C;
+  --dark-br:     #4E9823;
+  --slate:       #6B9944;
+  --shadow:      0 1px 3px rgba(0,50,0,.1), 0 1px 2px rgba(0,50,0,.07);
+  --shadow-lg:   0 8px 28px rgba(0,50,0,.15);
+  color-scheme: light;
+}
+body.theme-green .card.overdue          { background: rgba(248,113,113,.08); }
+body.theme-green #sandbox-banner        { background: #E0F2C8; color: #2D6A0A; border-bottom-color: #AECF7A; }
+body.theme-green .todo-section-head     { background: var(--bg); }
+body.theme-green .dl-overdue            { background: rgba(239,68,68,.1); color: #DC2626; }
+body.theme-green .type-badge-MEMO       { background: rgba(107,153,68,.12); color: #3A6018; }
+body.theme-green .dl-escalated          { background: rgba(77,152,28,.2); color: #2D6A0A; font-style:italic; }
+
+/* ── THEME SWITCHER UI ─────────────────────── */
+.theme-switcher {
+  display: flex; gap: 7px; align-items: center; padding: 10px 10px 4px;
+}
+.theme-swatch {
+  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: border-color .15s, transform .15s;
+  flex-shrink: 0;
+}
+.theme-swatch:hover { transform: scale(1.15); }
+.theme-swatch.active { border-color: var(--accent); }
+.theme-swatch.sw-dark  { background: linear-gradient(135deg,#191C21 50%,#57D53B 50%); }
+.theme-swatch.sw-light { background: linear-gradient(135deg,#FFFFFF 50%,#18181B 50%); border: 2px solid #D1D5DB; }
+.theme-swatch.sw-green { background: linear-gradient(135deg,#EDF6E2 50%,#5BAF2A 50%); border: 2px solid #C5E09A; }
+.theme-swatch-label    { font-size: 10px; color: var(--text-3); font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
@@ -976,6 +1068,19 @@ const SANDBOX_FILE_NAME = 'workos_sandbox.json';
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
+// ── THEME ───────────────────────────────────────
+const THEMES = ['dark', 'light', 'green'];
+let currentTheme = localStorage.getItem('wos_theme') || 'dark';
+
+function applyTheme(name) {
+  currentTheme = name;
+  localStorage.setItem('wos_theme', name);
+  document.body.classList.remove(...THEMES.map(t => 'theme-' + t));
+  if (name !== 'dark') document.body.classList.add('theme-' + name);
+  // re-render sidebar to update active swatch
+  renderSidebar();
+}
+
 const S = {
   items: [],
   groups: [],            // knowledge pools: [{id,name,order,archived,collapsed}]
@@ -1834,6 +1939,12 @@ function renderSidebar() {
 
   const sbItem = document.getElementById('sandbox-menu-item');
   document.getElementById('sidebar-bottom').innerHTML = `
+    <div class="theme-switcher">
+      <span class="theme-swatch-label">Teema</span>
+      <div class="theme-swatch sw-dark  ${currentTheme==='dark' ?'active':''}" title="Tumma"  onclick="applyTheme('dark')"></div>
+      <div class="theme-swatch sw-light ${currentTheme==='light'?'active':''}" title="Vaalea" onclick="applyTheme('light')"></div>
+      <div class="theme-swatch sw-green ${currentTheme==='green'?'active':''}" title="Vihreä" onclick="applyTheme('green')"></div>
+    </div>
     <div class="nav-item" onclick="toggleSandbox()" id="sandbox-menu-item"
          style="${S.sandbox?'color:var(--accent)':''}">
       <span class="nav-item-icon">🧪</span>
@@ -2859,6 +2970,9 @@ function hideLoading() { document.getElementById('loading').classList.remove('on
 // INIT
 // ═══════════════════════════════════════════════
 function init() {
+  // Apply saved theme immediately (before render to avoid flash)
+  if (currentTheme !== 'dark') document.body.classList.add('theme-' + currentTheme);
+
   // Pre-fill client id input
   if (S.clientId) document.getElementById('client-id-input').value = S.clientId;
 
