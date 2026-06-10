@@ -83,6 +83,33 @@ body {
 }
 #btn-add:active { background: #1d4ed8; }
 
+/* ── SANDBOX BANNER ────────────────────────── */
+#sandbox-banner {
+  display: none; background: #f59e0b; color: #fff;
+  text-align: center; font-size: 12px; font-weight: 700;
+  letter-spacing: .5px; padding: 4px 10px;
+  align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px;
+}
+body.sandbox #header { background: #fffbeb; border-bottom-color: #f59e0b; }
+body.sandbox #btn-add { background: #f59e0b; }
+body.sandbox #btn-add:active { background: #d97706; }
+body.sandbox .tab.active { color: #d97706; border-bottom-color: #d97706; }
+body.sandbox .tab.active .tab-badge { background: #fffbeb; color: #d97706; }
+body.sandbox #sandbox-banner { display: flex; }
+
+/* ── SEARCH BAR ─────────────────────────────── */
+#search-bar {
+  display: none; padding: 8px 14px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+#search-bar.open { display: block; }
+#search-input {
+  width: 100%; padding: 8px 12px; border: 1.5px solid var(--border);
+  border-radius: 20px; font-size: 14px; font-family: inherit;
+  outline: none; background: var(--bg); color: var(--text);
+}
+#search-input:focus { border-color: var(--primary); background: var(--surface); }
+
 /* ── TABS ──────────────────────────────────── */
 #tabs {
   background: var(--surface);
@@ -212,6 +239,48 @@ body {
 .empty-icon { font-size: 38px; margin-bottom: 10px; }
 .empty h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
 .empty p { font-size: 14px; }
+
+/* ── MEMO THREAD ───────────────────────────── */
+.thread-group { margin-bottom: 14px; }
+.thread-header {
+  font-size: 11px; font-weight: 700; letter-spacing: .5px;
+  text-transform: uppercase; color: var(--text-3);
+  margin-bottom: 6px; padding-left: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.thread-line { flex: 1; height: 1px; background: var(--border); }
+.card.in-thread { border-left-color: #6b7280 !important; margin-left: 12px; }
+
+/* ── DONE DATE ──────────────────────────────── */
+.done-date { font-size: 11px; color: var(--text-3); font-style: italic; }
+
+/* ── MEMO IMAGES ─────────────────────────── */
+.memo-images { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.memo-img-thumb {
+  width: 64px; height: 64px; object-fit: cover; border-radius: 8px;
+  cursor: pointer; border: 1.5px solid var(--border); background: var(--bg);
+  transition: opacity .15s;
+}
+.memo-img-thumb:hover { opacity: .85; }
+.memo-img-add {
+  width: 64px; height: 64px; border-radius: 8px;
+  border: 1.5px dashed var(--border); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; color: var(--text-3);
+  font-size: 24px; background: var(--bg); transition: border-color .15s, color .15s;
+  user-select: none;
+}
+.memo-img-add:hover { border-color: var(--primary); color: var(--primary); }
+#lightbox {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85);
+  z-index: 9999; align-items: center; justify-content: center;
+}
+#lightbox.open { display: flex; }
+#lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 10px; }
+#lightbox-close {
+  position: absolute; top: 16px; right: 20px; color: #fff;
+  font-size: 32px; cursor: pointer; line-height: 1; opacity: .8;
+}
+#lightbox-close:hover { opacity: 1; }
 
 /* ── SUBTASKS ──────────────────────────────── */
 .subtasks { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 7px; }
@@ -415,6 +484,14 @@ body {
 </head>
 <body>
 
+<!-- ── SANDBOX BANNER ───────────────────── -->
+<div id="sandbox-banner" style="display:none">
+  <span>⚠ SANDBOX-TILA — muutokset eivät vaikuta oikeaan dataan</span>
+  <span style="margin-left:12px;opacity:.7">|</span>
+  <button onclick="copyProdToSandbox()" style="margin-left:10px;padding:2px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);color:#fff;font-size:12px;cursor:pointer;font-weight:600">⬇ Kopioi tuotantodata</button>
+  <button onclick="toggleSandbox()" style="margin-left:8px;padding:2px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);color:#fff;font-size:12px;cursor:pointer;font-weight:600">✕ Poistu</button>
+</div>
+
 <!-- ── HEADER ────────────────────────────── -->
 <div id="header">
   <div style="display:flex;align-items:center;gap:10px">
@@ -435,18 +512,33 @@ body {
            background:var(--surface);border:1px solid var(--border);border-radius:10px;
            box-shadow:var(--shadow-lg);min-width:160px;overflow:hidden;z-index:150">
         <div id="user-email" style="padding:10px 14px;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--border)"></div>
+        <div onclick="toggleSandbox()" id="sandbox-menu-item"
+             style="padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border)"
+             onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+          🧪 Sandbox-tila
+        </div>
         <div onclick="signOut()" style="padding:10px 14px;font-size:14px;cursor:pointer;color:#dc2626"
              onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
           Vaihda tili / kirjaudu ulos
         </div>
       </div>
     </div>
+    <button id="btn-search" onclick="toggleSearch()" title="Haku"
+            style="width:36px;height:36px;border-radius:10px;border:1.5px solid var(--border);
+                   background:var(--surface);font-size:16px;cursor:pointer;color:var(--text-2);
+                   display:flex;align-items:center;justify-content:center">🔍</button>
     <button id="btn-fetch" onclick="fetchEmails()" title="Hae sähköpostit"
             style="display:none;padding:0 12px;height:36px;border-radius:10px;border:1.5px solid var(--border);
                    background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;color:var(--text-2);
                    white-space:nowrap">✉ Hae</button>
     <button id="btn-add" onclick="openAdd()" title="Uusi merkintä">+</button>
   </div>
+</div>
+
+<!-- ── SEARCH BAR ────────────────────────── -->
+<div id="search-bar">
+  <input id="search-input" type="text" placeholder="Hae kaikista merkinnöistä…"
+         oninput="onSearch(event)" autocomplete="off">
 </div>
 
 <!-- ── TABS ──────────────────────────────── -->
@@ -458,6 +550,10 @@ body {
 <!-- ── MODAL ─────────────────────────────── -->
 <div id="overlay" onclick="overlayClick(event)">
   <div id="modal"></div>
+  <div id="lightbox" onclick="closeLightbox()">
+    <span id="lightbox-close">✕</span>
+    <img id="lightbox-img" onclick="event.stopPropagation()">
+  </div>
 </div>
 
 <!-- ── SIGN-IN SCREEN ────────────────────── -->
@@ -500,6 +596,7 @@ body {
 const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.modify';
 const FOLDER_NAME = 'WorkOS';
 const FILE_NAME = 'workos_data.json';
+const SANDBOX_FILE_NAME = 'workos_sandbox.json';
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -508,10 +605,12 @@ const S = {
   items: [],
   tab: 'today',
   showDone: false,
+  searchQuery: '',
+  sandbox: localStorage.getItem('wos_sandbox') === '1',
   modal: { open: false, item: null, mode: 'add', type: 'TODO', deadline: null },
   auth: { ok: false, token: null, exp: 0 },
-  drive: { folderId: null, fileId: null },
-  sync: { status: 'offline' }, // offline|ok|syncing|error
+  drive: { folderId: null, fileId: null, sandboxFileId: null, imagesFolderId: null },
+  sync: { status: 'offline' },
   clientId: localStorage.getItem('wos_cid') || '788024697261-kuae7lcktlhklmjak0tc7tie4orebidu.apps.googleusercontent.com'
 };
 
@@ -701,7 +800,7 @@ async function initDrive() {
     }
     S.drive.folderId = fId;
 
-    // ── File ────────────────────────────────────
+    // ── Main file ────────────────────────────────────
     let fileId = localStorage.getItem('wos_fileid');
     if (fileId) {
       const r = await dGet(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,trashed`);
@@ -718,11 +817,31 @@ async function initDrive() {
       if (d.files && d.files.length > 0) {
         fileId = d.files[0].id;
       } else {
-        fileId = await createFile(fId);
+        fileId = await createFile(fId, FILE_NAME);
       }
       localStorage.setItem('wos_fileid', fileId);
     }
     S.drive.fileId = fileId;
+
+    // ── Sandbox file ────────────────────────────────────
+    let sbFileId = localStorage.getItem('wos_sb_fileid');
+    if (sbFileId) {
+      const r = await dGet(`https://www.googleapis.com/drive/v3/files/${sbFileId}?fields=id,trashed`);
+      if (!r.ok) { sbFileId = null; }
+      else { const d = await r.json(); if (d.trashed) sbFileId = null; }
+    }
+    if (!sbFileId) {
+      const q = encodeURIComponent(`name='${SANDBOX_FILE_NAME}' and '${fId}' in parents and trashed=false`);
+      const r = await dGet(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+      const d = await r.json();
+      if (d.files && d.files.length > 0) {
+        sbFileId = d.files[0].id;
+      } else {
+        sbFileId = await createFile(fId, SANDBOX_FILE_NAME);
+      }
+      localStorage.setItem('wos_sb_fileid', sbFileId);
+    }
+    S.drive.sandboxFileId = sbFileId;
 
     // ── Load data ────────────────────────────────
     await loadFromDrive();
@@ -740,8 +859,8 @@ async function initDrive() {
   }
 }
 
-async function createFile(folderId) {
-  const meta = { name: FILE_NAME, parents: [folderId], mimeType: 'application/json' };
+async function createFile(folderId, fileName) {
+  const meta = { name: fileName || FILE_NAME, parents: [folderId], mimeType: 'application/json' };
   const empty = { items: [], version: 1 };
   const bd = '----WorkOS_Boundary_1';
   const body =
@@ -756,8 +875,14 @@ async function createFile(folderId) {
   return d.id;
 }
 
+function activeFileId() {
+  return S.sandbox ? S.drive.sandboxFileId : S.drive.fileId;
+}
+
 async function loadFromDrive() {
-  const r = await dGet(`https://www.googleapis.com/drive/v3/files/${S.drive.fileId}?alt=media`);
+  const fid = activeFileId();
+  if (!fid) return;
+  const r = await dGet(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`);
   const d = await r.json();
   S.items = d.items || [];
   localStorage.setItem('wos_cache', JSON.stringify(S.items));
@@ -770,14 +895,15 @@ function scheduleSave() {
 }
 
 async function saveToDrive() {
-  if (!S.drive.fileId) {
+  const fid = activeFileId();
+  if (!fid) {
     localStorage.setItem('wos_cache', JSON.stringify(S.items));
     return;
   }
   setSyncStatus('syncing');
   try {
     await dPatch(
-      `https://www.googleapis.com/upload/drive/v3/files/${S.drive.fileId}?uploadType=media`,
+      `https://www.googleapis.com/upload/drive/v3/files/${fid}?uploadType=media`,
       JSON.stringify({ items: S.items, version: 1, updated: new Date().toISOString() })
     );
     localStorage.setItem('wos_cache', JSON.stringify(S.items));
@@ -1049,61 +1175,84 @@ function deleteItem(id) {
 // ═══════════════════════════════════════════════
 // TAB LOGIC
 // ═══════════════════════════════════════════════
+const MEMO_TYPES = new Set(['MEMO', 'DECISION']);
+
+function applySearch(items) {
+  if (!S.searchQuery) return items;
+  const q = S.searchQuery.toLowerCase();
+  return items.filter(x =>
+    (x.title||'').toLowerCase().includes(q) ||
+    (x.content||'').toLowerCase().includes(q)
+  );
+}
+
 function tabItems(tab) {
   const t = today(), we = weekEnd();
   const visible = S.showDone ? S.items : S.items.filter(x => x.status === 'open');
 
+  let result;
   switch(tab) {
     case 'today':
-      return visible.filter(x => {
-        if (x.type === 'QUESTION') return false;
+      result = visible.filter(x => {
+        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
         const dl = parseDate(x.deadline);
         return dl && dl <= t;
       });
+      break;
     case 'week':
-      return visible.filter(x => {
-        if (x.type === 'QUESTION') return false;
+      result = visible.filter(x => {
+        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
         const dl = parseDate(x.deadline);
         return dl && dl > t && dl <= we;
       });
+      break;
     case 'later':
-      return visible.filter(x => {
-        if (x.type === 'QUESTION') return false;
+      result = visible.filter(x => {
+        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
         const dl = parseDate(x.deadline);
         return !dl || dl > we;
       });
+      break;
     case 'questions':
-      return S.showDone ? S.items.filter(x => x.type === 'QUESTION')
-                        : S.items.filter(x => x.type === 'QUESTION' && x.status === 'open');
+      result = S.showDone ? S.items.filter(x => x.type === 'QUESTION')
+                          : S.items.filter(x => x.type === 'QUESTION' && x.status === 'open');
+      break;
+    case 'memos':
+      result = S.showDone ? S.items.filter(x => MEMO_TYPES.has(x.type))
+                          : S.items.filter(x => MEMO_TYPES.has(x.type) && x.status === 'open');
+      break;
+    default:
+      result = [];
   }
-  return [];
+  return applySearch(result);
 }
 
 function openItemCount(tab) {
-  // Count only open items for badge
   const t = today(), we = weekEnd();
   const open = S.items.filter(x => x.status === 'open');
   switch(tab) {
     case 'today':
       return open.filter(x => {
-        if (x.type === 'QUESTION') return false;
+        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
         const dl = parseDate(x.deadline);
         return dl && dl <= t;
       }).length;
     case 'week':
       return open.filter(x => {
-        if (x.type === 'QUESTION') return false;
+        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
         const dl = parseDate(x.deadline);
         return dl && dl > t && dl <= we;
       }).length;
     case 'later':
       return open.filter(x => {
-        if (x.type === 'QUESTION') return false;
+        if (x.type === 'QUESTION' || MEMO_TYPES.has(x.type)) return false;
         const dl = parseDate(x.deadline);
         return !dl || dl > we;
       }).length;
     case 'questions':
       return open.filter(x => x.type === 'QUESTION').length;
+    case 'memos':
+      return open.filter(x => MEMO_TYPES.has(x.type)).length;
   }
   return 0;
 }
@@ -1115,7 +1264,8 @@ const TABS = [
   { id:'today',     label:'Tänään' },
   { id:'week',      label:'Tällä viikolla' },
   { id:'later',     label:'Myöhemmin' },
-  { id:'questions', label:'Avoimet kysymykset' }
+  { id:'questions', label:'Avoimet kysymykset' },
+  { id:'memos',     label:'Memot' }
 ];
 
 function render() { renderTabs(); renderContent(); }
@@ -1137,10 +1287,14 @@ function renderContent() {
       today:     ['✅','Ei tehtäviä tänään','Hyvin tehty, tai lisää uusi!'],
       week:      ['📅','Ei tehtäviä tälle viikolle','Viikko on avoin.'],
       later:     ['🔮','Ei tulevia tehtäviä','Kaikki hallinnassa.'],
-      questions: ['❓','Ei avoimia kysymyksiä','Kaikki selvitetty!']
+      questions: ['❓','Ei avoimia kysymyksiä','Kaikki selvitetty!'],
+      memos:     ['📝','Ei memoja','Lisää memo tai päätös!']
     };
-    const [icon, h, p] = msgs[S.tab];
-    container.innerHTML = `<div class="empty"><div class="empty-icon">${icon}</div><h3>${h}</h3><p>${p}</p></div>`;
+    const [icon, h, p] = msgs[S.tab] || ['📋','Tyhjä',''];
+    const emptyMsg = S.searchQuery
+      ? `<div class="empty"><div class="empty-icon">🔍</div><h3>Ei hakutuloksia</h3><p>Haulla "${esc(S.searchQuery)}" ei löydy mitään.</p></div>`
+      : `<div class="empty"><div class="empty-icon">${icon}</div><h3>${h}</h3><p>${p}</p></div>`;
+    container.innerHTML = emptyMsg;
     appendDoneToggle(container);
     return;
   }
@@ -1172,27 +1326,53 @@ function renderContent() {
       html += `<div class="sec-head">${label.charAt(0).toUpperCase()+label.slice(1)}</div>`;
       html += groups[k].map(cardHtml).join('');
     });
+  } else if (S.tab === 'memos') {
+    // Group by threadId; items without threadId each stand alone
+    const threads = {};
+    const noThread = [];
+    items.forEach(x => {
+      if (x.threadId) {
+        if (!threads[x.threadId]) threads[x.threadId] = [];
+        threads[x.threadId].push(x);
+      } else {
+        noThread.push(x);
+      }
+    });
+    // Threaded groups first
+    Object.keys(threads).forEach(tid => {
+      const group = threads[tid];
+      group.sort((a,b) => (a.createdAt||'').localeCompare(b.createdAt||''));
+      const firstTitle = esc(group[0].title);
+      html += `<div class="thread-group">
+        <div class="thread-header">🔗 ${firstTitle} (${group.length})</div>
+        ${group.map(x => `<div class="card in-thread">${cardHtml(x, true)}</div>`).join('')}
+      </div>`;
+    });
+    // Non-threaded
+    noThread.forEach(x => { html += cardHtml(x); });
   } else {
     html = items.map(cardHtml).join('');
   }
 
   container.innerHTML = html;
   appendDoneToggle(container);
+  if (S.tab === 'memos') loadMemoImages();
 }
 
 function doneCountForTab(tab) {
-  // Laske valmiit riippumatta S.showDone-tilasta
   const t = today(), we = weekEnd();
   const done = S.items.filter(x => x.status === 'done');
   switch(tab) {
     case 'today':
-      return done.filter(x => { if (x.type==='QUESTION') return false; const dl=parseDate(x.deadline); return dl && dl<=t; }).length;
+      return done.filter(x => { if (x.type==='QUESTION'||MEMO_TYPES.has(x.type)) return false; const dl=parseDate(x.deadline); return dl && dl<=t; }).length;
     case 'week':
-      return done.filter(x => { if (x.type==='QUESTION') return false; const dl=parseDate(x.deadline); return dl && dl>t && dl<=we; }).length;
+      return done.filter(x => { if (x.type==='QUESTION'||MEMO_TYPES.has(x.type)) return false; const dl=parseDate(x.deadline); return dl && dl>t && dl<=we; }).length;
     case 'later':
-      return done.filter(x => { if (x.type==='QUESTION') return false; const dl=parseDate(x.deadline); return !dl || dl>we; }).length;
+      return done.filter(x => { if (x.type==='QUESTION'||MEMO_TYPES.has(x.type)) return false; const dl=parseDate(x.deadline); return !dl || dl>we; }).length;
     case 'questions':
       return done.filter(x => x.type==='QUESTION').length;
+    case 'memos':
+      return done.filter(x => MEMO_TYPES.has(x.type)).length;
   }
   return 0;
 }
@@ -1213,7 +1393,7 @@ function esc(s) {
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function cardHtml(item) {
+function cardHtml(item, inThread) {
   const badge = deadlineBadge(item.deadline);
   const done = item.status === 'done';
   const isOverdue = !done && item.deadline && parseDate(item.deadline) < today();
@@ -1253,26 +1433,41 @@ function cardHtml(item) {
   const subBtn = !hasSubs
     ? `<button class="card-btn" onclick="showSubInput('${item.id}')" title="Lisää osatehtävä">⊕</button>` : '';
 
-  return `
-<div class="card ${done?'done':''} ${isOverdue?'overdue':''}" data-type="${esc(item.type)}">
+  const doneDateHtml = done && item.doneAt
+    ? `<span class="done-date">✓ ${new Date(item.doneAt).toLocaleDateString('fi-FI')}</span>` : '';
+
+  // Images section (MEMO / DECISION only)
+  const isMemoType = MEMO_TYPES.has(item.type);
+  const imgs = item.images || [];
+  const imagesHtml = isMemoType ? `
+    <div class="memo-images">
+      ${imgs.map(img => `<img class="memo-img-thumb" data-fid="${esc(img.driveFileId)}" src="" alt="${esc(img.name)}" onclick="if(this.src&&this.src!==window.location.href)openLightbox(this.src)" title="${esc(img.name)}">`).join('')}
+      <div class="memo-img-add" title="Liitä kuva" onclick="document.getElementById('img-input-${esc(item.id)}').click()">📎</div>
+      <input type="file" id="img-input-${esc(item.id)}" accept="image/*" style="display:none" onchange="uploadMemoImage(this,'${esc(item.id)}')">
+    </div>` : '';
+
+  const inner = `
   <div class="card-main">
     <div class="card-check" onclick="toggleDone('${item.id}')"></div>
     <div class="card-body" style="min-width:0;flex:1">
       <div class="card-meta">
         <span class="type-badge type-badge-${esc(item.type)}">${esc(item.type)}</span>
-        ${badgeHtml}${progressHtml}
+        ${badgeHtml}${progressHtml}${doneDateHtml}
       </div>
       <div class="card-title">${esc(item.title)}</div>
       ${contentHtml}
       ${subsHtml}
+      ${imagesHtml}
     </div>
     <div class="card-actions">
       ${expandBtn}
       ${subBtn}
       <button class="card-btn" onclick="openEdit('${item.id}')" title="Muokkaa">✎</button>
     </div>
-  </div>
-</div>`;
+  </div>`;
+
+  if (inThread) return inner;
+  return `<div class="card ${done?'done':''} ${isOverdue?'overdue':''}" data-type="${esc(item.type)}">${inner}</div>`;
 }
 
 function toggleBody(id) {
@@ -1338,7 +1533,7 @@ const TYPE_OPTS = [
 ];
 
 function openAdd() {
-  S.modal = { open:true, item:null, mode:'add', type:'TODO', deadline:null };
+  S.modal = { open:true, item:null, mode:'add', type:'TODO', deadline:null, pendingImages:[], tempId:null };
   buildModal();
   document.getElementById('overlay').classList.add('open');
   setTimeout(() => document.getElementById('m-title')?.focus(), 100);
@@ -1395,6 +1590,34 @@ function buildModal() {
     </div>`;
 
   const showDL = !['MEMO','DECISION'].includes(S.modal.type);
+  const showImgs = MEMO_TYPES.has(S.modal.type);
+
+  // Images section for modal (only in edit mode for existing items, or always for memo types)
+  const existingImgs = (mode === 'edit' && item) ? (item.images || []) : [];
+  const imgThumbsHtml = existingImgs.map(img => `
+    <div style="position:relative;display:inline-block">
+      <img class="memo-img-thumb" data-fid="${esc(img.driveFileId)}" src=""
+           alt="${esc(img.name)}" title="${esc(img.name)}"
+           onclick="if(this.src&&this.src!==window.location.href)openLightbox(this.src)"
+           style="width:72px;height:72px">
+      <button onclick="removeModalImage('${esc(img.id)}')"
+              title="Poista kuva"
+              style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+                     background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:12px;
+                     line-height:1;padding:0;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>`).join('');
+
+  const imgsSection = `
+    <div class="form-row" id="m-img-row" style="${showImgs?'':'display:none'}">
+      <label class="form-label">Kuvat</label>
+      <div id="m-img-grid" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        ${imgThumbsHtml}
+        <div class="memo-img-add" style="width:72px;height:72px" title="Liitä kuva"
+             onclick="document.getElementById('m-img-input').click()">📎</div>
+        <input type="file" id="m-img-input" accept="image/*" style="display:none"
+               onchange="addModalImage(this)">
+      </div>
+    </div>`;
 
   document.getElementById('modal').innerHTML = `
     <div class="modal-handle"></div>
@@ -1414,22 +1637,26 @@ function buildModal() {
       <label class="form-label">Deadline</label>
       ${pills}
     </div>
+    ${imgsSection}
     <button class="btn-save" onclick="saveModal()">
       ${mode==='edit'?'Tallenna muutokset':'Lisää merkintä'}
     </button>
     ${mode==='edit' ? `<button class="btn-del" onclick="doDelete('${item.id}')">Poista merkintä</button>` : ''}
   `;
+
+  // Load existing image thumbnails in modal
+  if (existingImgs.length) setTimeout(loadMemoImages, 50);
 }
 
 function selectType(t) {
   S.modal.type = t;
-  // update selected styles
   document.querySelectorAll('.type-opt').forEach(el => {
     el.classList.toggle('sel', el.dataset.t === t);
   });
-  // show/hide deadline
   const dlRow = document.getElementById('m-dl-row');
   if (dlRow) dlRow.style.display = ['MEMO','DECISION'].includes(t) ? 'none' : '';
+  const imgRow = document.getElementById('m-img-row');
+  if (imgRow) imgRow.style.display = MEMO_TYPES.has(t) ? '' : 'none';
 }
 
 function selDL(key) {
@@ -1468,9 +1695,93 @@ function saveModal() {
     updateItem(S.modal.item.id, { title, content, type, deadline });
     showToast('Tallennettu ✓');
   } else {
-    addItem({ title, content, type, deadline });
+    const images = S.modal.pendingImages || [];
+    addItem({ title, content, type, deadline, images });
   }
   closeModal();
+}
+
+// ── Modal image helpers ──────────────────────────
+function rebuildModalImageGrid(images) {
+  const grid = document.getElementById('m-img-grid');
+  if (!grid) return;
+  const thumbs = images.map(img => `
+    <div style="position:relative;display:inline-block">
+      <img class="memo-img-thumb" data-fid="${esc(img.driveFileId)}" src=""
+           alt="${esc(img.name)}" title="${esc(img.name)}"
+           onclick="if(this.src&&this.src!==window.location.href)openLightbox(this.src)"
+           style="width:72px;height:72px">
+      <button onclick="removeModalImage('${esc(img.id)}')"
+              title="Poista kuva"
+              style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+                     background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:12px;
+                     line-height:1;padding:0;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>`).join('');
+  grid.innerHTML = thumbs + `
+    <div class="memo-img-add" style="width:72px;height:72px" title="Liitä kuva"
+         onclick="document.getElementById('m-img-input').click()">📎</div>
+    <input type="file" id="m-img-input" accept="image/*" style="display:none"
+           onchange="addModalImage(this)">`;
+  setTimeout(loadMemoImages, 50);
+}
+
+async function addModalImage(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  if (!S.auth.ok) { showToast('Kirjaudu ensin'); return; }
+  showToast('Ladataan kuvaa…');
+  try {
+    const imgFolderId = await ensureImagesFolder();
+    const imgId = uid();
+    // Use item id (edit) or a temp id (add)
+    const contextId = S.modal.mode === 'edit' ? S.modal.item.id : (S.modal.tempId || (S.modal.tempId = uid()));
+    const meta = { name: `${contextId}_${imgId}_${file.name}`, parents: [imgFolderId], description: contextId };
+    const bd = '----WorkOS_Img_Bdry';
+    const arrBuf = await file.arrayBuffer();
+    const enc = new TextEncoder();
+    const head = enc.encode(`--${bd}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(meta)}\r\n--${bd}\r\nContent-Type: ${file.type}\r\n\r\n`);
+    const tail = enc.encode(`\r\n--${bd}--`);
+    const body = new Uint8Array(head.length + arrBuf.byteLength + tail.length);
+    body.set(head, 0); body.set(new Uint8Array(arrBuf), head.length); body.set(tail, head.length + arrBuf.byteLength);
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + S.auth.token, 'Content-Type': `multipart/related; boundary=${bd}` },
+      body
+    });
+    const d = await r.json();
+    if (!d.id) throw new Error('No ID');
+    const imgEntry = { id: imgId, driveFileId: d.id, name: file.name };
+    if (S.modal.mode === 'edit') {
+      if (!S.modal.item.images) S.modal.item.images = [];
+      S.modal.item.images.push(imgEntry);
+      S.modal.item.updatedAt = new Date().toISOString();
+      scheduleSave();
+      rebuildModalImageGrid(S.modal.item.images);
+    } else {
+      if (!S.modal.pendingImages) S.modal.pendingImages = [];
+      S.modal.pendingImages.push(imgEntry);
+      rebuildModalImageGrid(S.modal.pendingImages);
+    }
+    showToast('Kuva lisätty ✓');
+  } catch(e) {
+    console.error('Modal image upload:', e);
+    showToast('Kuvan lataus epäonnistui');
+  }
+  input.value = '';
+}
+
+function removeModalImage(imgId) {
+  if (S.modal.mode === 'edit') {
+    if (!S.modal.item.images) return;
+    S.modal.item.images = S.modal.item.images.filter(x => x.id !== imgId);
+    S.modal.item.updatedAt = new Date().toISOString();
+    scheduleSave();
+    rebuildModalImageGrid(S.modal.item.images);
+  } else {
+    if (!S.modal.pendingImages) return;
+    S.modal.pendingImages = S.modal.pendingImages.filter(x => x.id !== imgId);
+    rebuildModalImageGrid(S.modal.pendingImages);
+  }
 }
 
 function doDelete(id) {
@@ -1485,6 +1796,198 @@ function doDelete(id) {
 // ═══════════════════════════════════════════════
 function setTab(t) { S.tab = t; render(); }
 function toggleShowDone() { S.showDone = !S.showDone; render(); }
+
+function toggleSandbox() {
+  S.sandbox = !S.sandbox;
+  localStorage.setItem('wos_sandbox', S.sandbox ? '1' : '0');
+  applysandbox();
+  closeMenu();
+  // Reload data from the correct Drive file
+  if (S.auth.ok) {
+    showLoading();
+    loadFromDrive().then(() => { setSyncStatus('ok'); render(); }).catch(() => {
+      loadFromCache(); render();
+    }).finally(() => hideLoading());
+  } else {
+    render();
+  }
+  showToast(S.sandbox ? '🟠 Sandbox-tila päällä' : '✅ Palasit tuotantotilaan');
+}
+
+function applysandbox() {
+  document.body.classList.toggle('sandbox', S.sandbox);
+  const banner = document.getElementById('sandbox-banner');
+  if (banner) banner.style.display = S.sandbox ? 'flex' : 'none';
+  const sbItem = document.getElementById('sandbox-menu-item');
+  if (sbItem) sbItem.innerHTML = S.sandbox
+    ? '🟠 Sandbox: <b>ON</b> — klik. poistu'
+    : '🧪 Sandbox-tila';
+}
+
+async function copyProdToSandbox() {
+  if (!S.auth.ok) { showToast('Kirjaudu ensin'); return; }
+  if (!S.drive.sandboxFileId) { showToast('Sandbox-tiedostoa ei löydy'); return; }
+  if (!confirm('Kopioidaanko tuotantodata sandboxiin? Sandbox-data ylikirjoitetaan.')) return;
+  showLoading();
+  try {
+    const r = await dGet(`https://www.googleapis.com/drive/v3/files/${S.drive.fileId}?alt=media`);
+    const prodData = await r.json();
+    await dPatch(
+      `https://www.googleapis.com/upload/drive/v3/files/${S.drive.sandboxFileId}?uploadType=media`,
+      JSON.stringify({ ...prodData, updated: new Date().toISOString() })
+    );
+    // Reload into current view
+    await loadFromDrive();
+    setSyncStatus('ok');
+    render();
+    showToast('Tuotantodata kopioitu sandboxiin ✓');
+  } catch(e) {
+    console.error('Copy prod:', e);
+    showToast('Kopiointi epäonnistui');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ═══════════════════════════════════════════════
+// MEMO IMAGES
+// ═══════════════════════════════════════════════
+
+const imageBlobCache = {};
+
+async function ensureImagesFolder() {
+  if (S.drive.imagesFolderId) return S.drive.imagesFolderId;
+  let fid = localStorage.getItem('wos_imgfid');
+  if (fid) {
+    const r = await dGet(`https://www.googleapis.com/drive/v3/files/${fid}?fields=id,trashed`);
+    if (r.ok) {
+      const d = await r.json();
+      if (!d.trashed) { S.drive.imagesFolderId = fid; return fid; }
+    }
+    fid = null;
+  }
+  const q = encodeURIComponent(`name='Kuvat' and '${S.drive.folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const r = await dGet(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+  const d = await r.json();
+  if (d.files?.length) {
+    fid = d.files[0].id;
+  } else {
+    const cr = await dPost('https://www.googleapis.com/drive/v3/files', {
+      name: 'Kuvat', mimeType: 'application/vnd.google-apps.folder', parents: [S.drive.folderId]
+    });
+    const cd = await cr.json();
+    fid = cd.id;
+  }
+  localStorage.setItem('wos_imgfid', fid);
+  S.drive.imagesFolderId = fid;
+  return fid;
+}
+
+async function uploadMemoImage(input, itemId) {
+  const file = input.files?.[0];
+  if (!file) return;
+  if (!S.auth.ok) { showToast('Kirjaudu ensin'); return; }
+  showToast('Ladataan kuvaa…');
+  try {
+    const imgFolderId = await ensureImagesFolder();
+    const imgId = uid();
+    const meta = {
+      name: `${itemId}_${imgId}_${file.name}`,
+      parents: [imgFolderId],
+      description: itemId
+    };
+    const bd = '----WorkOS_Img_Bdry';
+    const metaStr = JSON.stringify(meta);
+    const arrBuf = await file.arrayBuffer();
+    const enc = new TextEncoder();
+    const head = enc.encode(`--${bd}\r\nContent-Type: application/json\r\n\r\n${metaStr}\r\n--${bd}\r\nContent-Type: ${file.type}\r\n\r\n`);
+    const tail = enc.encode(`\r\n--${bd}--`);
+    const body = new Uint8Array(head.length + arrBuf.byteLength + tail.length);
+    body.set(head, 0);
+    body.set(new Uint8Array(arrBuf), head.length);
+    body.set(tail, head.length + arrBuf.byteLength);
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + S.auth.token, 'Content-Type': `multipart/related; boundary=${bd}` },
+      body
+    });
+    const d = await r.json();
+    if (!d.id) throw new Error('No ID returned');
+    // Store in item
+    const item = S.items.find(x => x.id === itemId);
+    if (item) {
+      if (!item.images) item.images = [];
+      item.images.push({ id: imgId, driveFileId: d.id, name: file.name });
+      item.updatedAt = new Date().toISOString();
+      scheduleSave();
+      render();
+      showToast('Kuva lisätty ✓');
+    }
+  } catch(e) {
+    console.error('Image upload:', e);
+    showToast('Kuvan lataus epäonnistui');
+  }
+  input.value = '';
+}
+
+async function loadMemoImages() {
+  const imgs = document.querySelectorAll('img.memo-img-thumb[data-fid]');
+  for (const img of imgs) {
+    const fid = img.dataset.fid;
+    if (!fid) continue;
+    if (imageBlobCache[fid]) { img.src = imageBlobCache[fid]; continue; }
+    if (!S.auth.ok || !S.auth.token) continue;
+    try {
+      const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`, {
+        headers: { Authorization: 'Bearer ' + S.auth.token }
+      });
+      if (!r.ok) continue;
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      imageBlobCache[fid] = url;
+      img.src = url;
+    } catch(e) { console.warn('Image load:', fid, e); }
+  }
+}
+
+function openLightbox(src) {
+  if (!src) return;
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightbox-img');
+  if (!lb || !img) return;
+  img.src = src;
+  lb.classList.add('open');
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  if (lb) lb.classList.remove('open');
+}
+
+function toggleSearch() {
+  const bar = document.getElementById('search-bar');
+  const inp = document.getElementById('search-input');
+  if (!bar) return;
+  const visible = bar.style.display !== 'none' && bar.style.display !== '';
+  if (visible) {
+    bar.style.display = 'none';
+    S.searchQuery = '';
+    render();
+  } else {
+    bar.style.display = 'flex';
+    inp && inp.focus();
+  }
+}
+
+function onSearch(e) {
+  S.searchQuery = (e.target.value || '').trim();
+  render();
+}
+
+function closeMenu() {
+  const m = document.getElementById('user-menu');
+  if (m) m.style.display = 'none';
+}
 
 let toastTm;
 function showToast(msg) {
@@ -1517,6 +2020,9 @@ function init() {
   // Pre-fill client id input
   if (S.clientId) document.getElementById('client-id-input').value = S.clientId;
 
+  // Apply sandbox state visually
+  applysandbox();
+
   // Load cache for immediate display
   loadFromCache();
   render();
@@ -1535,6 +2041,10 @@ function init() {
 
   // Keyboard shortcut: N = new item
   document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeLightbox();
+      return;
+    }
     if (e.key === 'n' && !e.ctrlKey && !e.metaKey &&
         !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
       openAdd();
