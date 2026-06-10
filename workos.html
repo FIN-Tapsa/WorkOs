@@ -7,32 +7,34 @@
 <script src="https://accounts.google.com/gsi/client" onload="onGISLoad()" async defer></script>
 <style>
 :root {
-  /* ── Green / dark palette ── */
-  --bg:          #0F0F0F;
-  --surface:     #202020;
-  --surface-2:   #2a2a2a;
-  --border:      #2e2e2e;
-  --border-2:    #3a3a3a;
-  --text:        #F8F8F8;
-  --text-2:      #a0a0a0;
-  --text-3:      #606060;
-  --primary:     #5DD62C;
-  --primary-h:   #4eba22;
-  --primary-bg:  #0d1f08;
-  --accent:      #5DD62C;
-  --accent-dim:  #337418;
-  --dark-br:     #337418;
-  --slate:       #606060;
-  --radius:      12px;
-  --shadow:      0 1px 4px rgba(0,0,0,.6), 0 1px 2px rgba(0,0,0,.5);
-  --shadow-lg:   0 10px 32px rgba(0,0,0,.7);
+  /* ── Refined dark palette ── */
+  --bg:          #111315;
+  --surface:     #191C21;
+  --surface-2:   #22262E;
+  --border:      #2B2F36;
+  --border-2:    #363B45;
+  --text:        #F3F4F6;
+  --text-2:      #9CA3AF;
+  --text-3:      #6B7280;
+  --primary:     #57D53B;
+  --primary-h:   #4aba30;
+  --primary-bg:  #0c1f08;
+  --accent:      #57D53B;
+  --accent-dim:  #2f7020;
+  --dark-br:     #2f7020;
+  --slate:       #6B7280;
+  --radius:      10px;
+  --radius-lg:   14px;
+  --shadow:      0 1px 3px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+  --shadow-lg:   0 8px 28px rgba(0,0,0,.7);
+  --sidebar-w:   220px;
   /* type colors */
-  --c-todo:     #5DD62C;
-  --c-question: #f0c040;
-  --c-memo:     #808080;
+  --c-todo:     #57D53B;
+  --c-question: #FBBF24;
+  --c-memo:     #94A3B8;
   --c-meeting:  #38bdf8;
-  --c-decision: #c084fc;
-  --c-followup: #f87171;
+  --c-decision: #A78BFA;
+  --c-followup: #F87171;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
@@ -44,23 +46,125 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── HEADER ────────────────────────────────── */
-#header {
+/* ── APP LAYOUT ────────────────────────────── */
+html, body { height: 100%; overflow: hidden; }
+#app {
+  display: flex; height: 100vh; overflow: hidden;
+}
+
+/* ── SIDEBAR ───────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
   background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  height: 100vh; overflow: hidden;
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+  z-index: 110;
+}
+.sidebar-top {
+  padding: 16px 14px 10px;
   border-bottom: 1px solid var(--border);
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  flex-shrink: 0;
 }
 .logo {
   font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
-  color: var(--text);
+  color: var(--text); margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between;
 }
 .logo span { color: var(--accent); }
+.sidebar-search {
+  position: relative;
+}
+#search-input {
+  width: 100%; padding: 8px 12px 8px 32px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 13px; font-family: inherit;
+  outline: none; background: var(--bg); color: var(--text);
+  transition: border-color .15s;
+}
+#search-input::placeholder { color: var(--text-3); }
+#search-input:focus { border-color: var(--primary); }
+.sidebar-search::before {
+  content: '⌕'; position: absolute; left: 9px; top: 50%;
+  transform: translateY(-50%); color: var(--text-3); font-size: 15px;
+  pointer-events: none;
+}
+
+.sidebar-nav {
+  flex: 1; padding: 10px 8px; overflow-y: auto; scrollbar-width: none;
+}
+.sidebar-nav::-webkit-scrollbar { display: none; }
+.nav-section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .8px;
+  text-transform: uppercase; color: var(--text-3);
+  padding: 12px 8px 5px; margin-top: 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  cursor: pointer; color: var(--text-2); font-size: 13.5px; font-weight: 500;
+  transition: background .12s, color .12s;
+  margin-bottom: 1px; user-select: none;
+}
+.nav-item:hover { background: var(--surface-2); color: var(--text); }
+.nav-item.active { background: var(--primary-bg); color: var(--accent); font-weight: 600; }
+.nav-item-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-item-label { flex: 1; }
+.nav-badge {
+  font-size: 10px; font-weight: 700;
+  background: var(--border-2); color: var(--text-3);
+  padding: 1px 7px; border-radius: 10px; min-width: 20px; text-align: center;
+}
+.nav-item.active .nav-badge { background: var(--primary-bg); color: var(--accent); }
+.nav-item.dim { opacity: .45; cursor: default; pointer-events: none; }
+
+.sidebar-bottom {
+  padding: 10px 8px 16px;
+  border-top: 1px solid var(--border); flex-shrink: 0;
+}
+
+/* ── SIDEBAR OVERLAY (mobile backdrop) ──────── */
+#sidebar-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  z-index: 109; backdrop-filter: blur(2px);
+}
+#sidebar-overlay.on { display: block; }
+
+/* ── MAIN AREA ─────────────────────────────── */
+#main {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  height: 100vh; overflow: hidden;
+}
+
+/* ── MOBILE BAR ───────────────────────────── */
+#mobile-bar {
+  display: none;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.mobile-logo { font-size: 18px; font-weight: 800; color: var(--text); }
+.mobile-logo span { color: var(--accent); }
+.mobile-right { display: flex; gap: 8px; align-items: center; }
+#btn-hamburger {
+  width: 34px; height: 34px; border: 1px solid var(--border-2);
+  background: var(--surface-2); border-radius: 8px; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-2);
+}
+
+/* ── TOP BAR (desktop) ─────────────────────── */
+#topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 9px 18px;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+#topbar-title {
+  flex: 1; font-size: 15px; font-weight: 700; color: var(--text);
+}
+.topbar-right { display: flex; gap: 8px; align-items: center; }
 #sync-status {
   font-size: 11px; color: var(--text-3);
   display: flex; align-items: center; gap: 5px; cursor: default;
@@ -73,18 +177,17 @@ body {
 #sync-dot.error   { background: #f87171; }
 #sync-dot.offline { background: var(--text-3); }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-.header-right { display: flex; gap: 8px; align-items: center; }
 #btn-signin-small {
   font-size: 13px; font-weight: 600; color: var(--accent);
   background: var(--primary-bg); border: 1px solid var(--border-2);
   border-radius: 8px; padding: 6px 12px; cursor: pointer;
 }
 #btn-add {
-  width: 36px; height: 36px; border-radius: 10px;
+  width: 34px; height: 34px; border-radius: 9px;
   background: var(--primary); color: #fff;
-  border: none; cursor: pointer; font-size: 22px; line-height: 1;
+  border: none; cursor: pointer; font-size: 20px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 300; box-shadow: 0 2px 8px rgba(93,214,44,.3);
+  font-weight: 300; box-shadow: 0 2px 8px rgba(87,213,59,.28);
   transition: background .12s, box-shadow .12s;
 }
 #btn-add:hover { background: var(--primary-h); }
@@ -92,67 +195,34 @@ body {
 
 /* ── SANDBOX BANNER ────────────────────────── */
 #sandbox-banner {
-  display: none; background: #1a2e12; color: var(--accent);
-  text-align: center; font-size: 12px; font-weight: 700;
-  letter-spacing: .5px; padding: 4px 10px;
-  align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px;
-  border-bottom: 1px solid var(--dark-br);
+  display: none; background: #0f2009; color: var(--accent);
+  font-size: 12px; font-weight: 700; letter-spacing: .5px; padding: 5px 14px;
+  align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px;
+  border-bottom: 1px solid var(--dark-br); flex-shrink: 0;
 }
-body.sandbox #header { border-bottom-color: var(--dark-br); }
+body.sandbox #topbar { border-bottom-color: var(--dark-br); }
 body.sandbox #btn-add { background: var(--dark-br); box-shadow: none; }
-body.sandbox .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-body.sandbox .tab.active .tab-badge { background: var(--primary-bg); color: var(--accent); }
-body.sandbox #sandbox-banner { display: flex; }
+body.sandbox #sidebar { border-right-color: var(--dark-br); }
 
-/* ── SEARCH BAR ─────────────────────────────── */
-#search-bar {
-  display: none; padding: 8px 14px;
-  background: var(--surface); border-bottom: 1px solid var(--border);
-}
-#search-bar.open { display: block; }
-#search-input {
-  width: 100%; padding: 9px 14px; border: 1.5px solid var(--border);
-  border-radius: 24px; font-size: 14px; font-family: inherit;
-  outline: none; background: var(--bg); color: var(--text);
-  transition: border-color .15s;
-}
-#search-input::placeholder { color: var(--text-3); }
-#search-input:focus { border-color: var(--primary); background: var(--surface-2); }
-
-/* ── TABS ──────────────────────────────────── */
-#tabs {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-#tabs::-webkit-scrollbar { display: none; }
-.tab {
-  padding: 12px 20px;
-  font-size: 13px; font-weight: 600; letter-spacing: .2px;
-  color: var(--text-3);
-  border-bottom: 2px solid transparent;
-  cursor: pointer; white-space: nowrap;
-  display: flex; align-items: center; gap: 7px;
-  flex-shrink: 0;
-  transition: color .15s;
-}
-.tab:hover { color: var(--text-2); }
-.tab.active { color: var(--accent); border-bottom-color: var(--primary); }
-.tab-badge {
-  font-size: 10px; font-weight: 700;
-  background: var(--border-2); color: var(--text-3);
-  padding: 1px 6px; border-radius: 10px;
-  min-width: 18px; text-align: center;
-}
-.tab.active .tab-badge { background: var(--primary-bg); color: var(--accent); }
-
-/* ── CONTENT ───────────────────────────────── */
+/* ── CONTENT AREA ──────────────────────────── */
 #content {
-  padding: 14px 14px 40px;
-  max-width: 700px;
-  margin: 0 auto;
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 20px 22px 60px;
+}
+.content-inner {
+  max-width: 740px; margin: 0 auto;
+}
+
+/* ── RESPONSIVE MOBILE ─────────────────────── */
+@media (max-width: 680px) {
+  #sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    transform: translateX(-100%);
+  }
+  #sidebar.open { transform: translateX(0); }
+  #mobile-bar { display: flex; }
+  #topbar { display: none; }
+  #content { padding: 14px 14px 60px; }
 }
 
 /* ── SECTION HEADER ────────────────────────── */
@@ -162,6 +232,146 @@ body.sandbox #sandbox-banner { display: flex; }
   margin: 18px 0 6px 2px;
 }
 .sec-head:first-child { margin-top: 4px; }
+
+/* ── DASHBOARD ─────────────────────────────── */
+.dashboard-greeting {
+  margin-bottom: 22px;
+}
+.dashboard-greeting h2 {
+  font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 3px;
+}
+.dashboard-greeting p { font-size: 13px; color: var(--text-3); }
+.dashboard-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  margin-bottom: 14px;
+}
+.dashboard-grid.full { grid-template-columns: 1fr; }
+@media (max-width: 540px) { .dashboard-grid { grid-template-columns: 1fr; } }
+.dash-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.dash-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.dash-card-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .7px;
+  text-transform: uppercase; color: var(--text-3);
+}
+.dash-card-action {
+  font-size: 11px; color: var(--accent); cursor: pointer; font-weight: 600;
+}
+.dash-card-action:hover { text-decoration: underline; }
+.next-action-item {
+  background: var(--surface-2); border-radius: 9px; padding: 12px;
+  border-left: 3px solid var(--accent);
+}
+.next-action-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.next-action-meta { font-size: 11px; color: var(--text-3); }
+.dash-stat-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.dash-stat {
+  background: var(--surface-2); border-radius: 8px; padding: 10px 14px;
+  flex: 1; min-width: 70px; text-align: center;
+}
+.dash-stat-num { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+.dash-stat-label { font-size: 10px; color: var(--text-3); margin-top: 3px; }
+.dash-list-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text-2); cursor: pointer;
+}
+.dash-list-item:last-child { border-bottom: none; }
+.dash-list-item:hover { color: var(--text); }
+.dash-list-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+}
+.dash-list-text { flex: 1; line-height: 1.4; }
+.dash-list-meta { font-size: 11px; color: var(--text-3); white-space: nowrap; }
+.dash-empty { font-size: 12px; color: var(--text-3); font-style: italic; padding: 4px 0; }
+
+/* ── INBOX ──────────────────────────────────── */
+.inbox-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px;
+  margin-bottom: 8px; display: flex; gap: 12px; align-items: flex-start;
+  transition: border-color .12s;
+}
+.inbox-item:hover { border-color: var(--border-2); }
+.inbox-item-body { flex: 1; min-width: 0; }
+.inbox-item-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+.inbox-item-content { font-size: 12px; color: var(--text-3); margin-bottom: 8px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inbox-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.inbox-btn {
+  font-size: 12px; font-weight: 600; padding: 4px 12px;
+  border-radius: 7px; cursor: pointer; border: 1px solid var(--border-2);
+  background: var(--surface-2); color: var(--text-2);
+  transition: background .12s, color .12s, border-color .12s;
+}
+.inbox-btn:hover { background: var(--border-2); color: var(--text); }
+.inbox-btn.accept { border-color: var(--accent); color: var(--accent); }
+.inbox-btn.accept:hover { background: var(--primary-bg); }
+.inbox-btn.discard { border-color: rgba(248,113,113,.3); color: #f87171; }
+.inbox-btn.discard:hover { background: rgba(248,113,113,.08); }
+
+/* ── TASKS FILTERS ─────────────────────────── */
+.view-filters {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.filter-btn {
+  padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  border: 1.5px solid var(--border); cursor: pointer;
+  background: var(--surface); color: var(--text-3);
+  transition: all .12s;
+}
+.filter-btn:hover { border-color: var(--border-2); color: var(--text-2); }
+.filter-btn.active { border-color: var(--primary); background: var(--primary-bg); color: var(--accent); }
+
+/* ── KNOWLEDGE VIEW ────────────────────────── */
+.knowledge-type-filter {
+  display: flex; gap: 0; margin-bottom: 16px;
+  background: var(--surface); border-radius: 9px; padding: 3px;
+  border: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.knowledge-type-filter::-webkit-scrollbar { display: none; }
+.kf-btn {
+  padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none; background: transparent; color: var(--text-3);
+  white-space: nowrap; transition: background .12s, color .12s; flex-shrink: 0;
+}
+.kf-btn:hover { color: var(--text-2); }
+.kf-btn.active { background: var(--primary-bg); color: var(--accent); }
+
+/* ── AI VIEW ────────────────────────────────── */
+.ai-search-box {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px;
+  margin-bottom: 20px; display: flex; gap: 10px; align-items: center;
+}
+.ai-search-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-size: 15px; color: var(--text); font-family: inherit;
+}
+.ai-search-input::placeholder { color: var(--text-3); }
+.ai-send-btn {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: var(--primary); color: #fff; border: none; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background .12s;
+}
+.ai-send-btn:hover { background: var(--primary-h); }
+.ai-suggestions { display: flex; flex-direction: column; gap: 8px; }
+.ai-suggestion {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+  font-size: 13px; color: var(--text-2); cursor: pointer;
+  transition: border-color .12s, color .12s;
+  display: flex; align-items: center; gap: 10px;
+}
+.ai-suggestion:hover { border-color: var(--border-2); color: var(--text); }
+.ai-suggestion span { font-size: 16px; }
 
 /* ── ITEM CARD ─────────────────────────────── */
 .card {
@@ -181,7 +391,7 @@ body.sandbox #sandbox-banner { display: flex; }
 .card[data-type="DECISION"]  { border-left-color: var(--c-decision); }
 .card[data-type="FOLLOW-UP"] { border-left-color: var(--c-followup); }
 .card.done    { opacity: .35; }
-.card.overdue { background: #1a0a0a; border-left-color: #f87171 !important; }
+.card.overdue { background: rgba(248,113,113,.06); border-left-color: #f87171 !important; }
 
 .card-main {
   padding: 11px 10px 11px 13px;
@@ -205,11 +415,11 @@ body.sandbox #sandbox-banner { display: flex; }
   padding: 2px 6px; border-radius: 4px; text-transform: uppercase;
   white-space: nowrap;
 }
-.type-badge-TODO      { background: rgba(93,214,44,.12);  color: var(--c-todo); }
-.type-badge-QUESTION  { background: rgba(240,192,64,.12); color: var(--c-question); }
-.type-badge-MEMO      { background: rgba(128,128,128,.14); color: var(--c-memo); }
-.type-badge-MEETING   { background: rgba(56,189,248,.12); color: var(--c-meeting); }
-.type-badge-DECISION  { background: rgba(192,132,252,.12); color: var(--c-decision); }
+.type-badge-TODO      { background: rgba(87,213,59,.12);   color: var(--c-todo); }
+.type-badge-QUESTION  { background: rgba(251,191,36,.12);  color: var(--c-question); }
+.type-badge-MEMO      { background: rgba(148,163,184,.1);  color: var(--c-memo); }
+.type-badge-MEETING   { background: rgba(56,189,248,.12);  color: var(--c-meeting); }
+.type-badge-DECISION  { background: rgba(167,139,250,.12); color: var(--c-decision); }
 .type-badge-FOLLOW-UP { background: rgba(248,113,113,.12); color: var(--c-followup); }
 
 .dl-badge {
@@ -217,10 +427,10 @@ body.sandbox #sandbox-banner { display: flex; }
   padding: 2px 7px; border-radius: 20px; white-space: nowrap;
 }
 .dl-overdue   { background: rgba(248,113,113,.15); color: #f87171; }
-.dl-today     { background: rgba(93,214,44,.15);   color: var(--accent); }
-.dl-soon      { background: rgba(93,214,44,.1);    color: var(--primary); }
-.dl-later     { background: rgba(128,128,128,.14); color: var(--slate); }
-.dl-escalated { background: rgba(51,116,24,.3);    color: var(--accent); font-style: italic; }
+.dl-today     { background: rgba(87,213,59,.14);   color: var(--accent); }
+.dl-soon      { background: rgba(87,213,59,.08);   color: var(--primary); }
+.dl-later     { background: rgba(107,114,128,.14); color: var(--slate); }
+.dl-escalated { background: rgba(47,112,32,.3);    color: var(--accent); font-style: italic; }
 
 /* ── COMBINED TODO VIEW ─────────────────────── */
 .todo-section { margin-bottom: 2px; }
@@ -499,11 +709,11 @@ body.sandbox #sandbox-banner { display: flex; }
 .type-opt-icon { font-size: 16px; margin-bottom: 3px; }
 .type-opt-name { font-size: 9px; font-weight: 700; color: var(--text-3); letter-spacing: .4px; text-transform: uppercase; }
 
-.type-opt.sel[data-t="TODO"]      { border-color: var(--c-todo);     background: rgba(93,214,44,.1); }
-.type-opt.sel[data-t="QUESTION"]  { border-color: var(--c-question); background: rgba(240,192,64,.1); }
-.type-opt.sel[data-t="MEMO"]      { border-color: var(--c-memo);     background: rgba(128,128,128,.1); }
+.type-opt.sel[data-t="TODO"]      { border-color: var(--c-todo);     background: rgba(87,213,59,.1); }
+.type-opt.sel[data-t="QUESTION"]  { border-color: var(--c-question); background: rgba(251,191,36,.1); }
+.type-opt.sel[data-t="MEMO"]      { border-color: var(--c-memo);     background: rgba(148,163,184,.08); }
 .type-opt.sel[data-t="MEETING"]   { border-color: var(--c-meeting);  background: rgba(56,189,248,.1); }
-.type-opt.sel[data-t="DECISION"]  { border-color: var(--c-decision); background: rgba(192,132,252,.1); }
+.type-opt.sel[data-t="DECISION"]  { border-color: var(--c-decision); background: rgba(167,139,250,.1); }
 .type-opt.sel[data-t="FOLLOW-UP"] { border-color: var(--c-followup); background: rgba(248,113,113,.1); }
 
 /* Form */
@@ -547,7 +757,7 @@ body.sandbox #sandbox-banner { display: flex; }
   font-size: 15px; font-weight: 700; cursor: pointer;
   font-family: inherit; transition: background .12s;
   margin-top: 4px; letter-spacing: .2px;
-  box-shadow: 0 2px 12px rgba(93,214,44,.25);
+  box-shadow: 0 2px 12px rgba(87,213,59,.22);
 }
 .btn-save:hover { background: var(--primary-h); }
 .btn-save:active { background: var(--dark-br); box-shadow: none; }
@@ -634,69 +844,83 @@ body.sandbox #sandbox-banner { display: flex; }
 </head>
 <body>
 
-<!-- ── SANDBOX BANNER ───────────────────── -->
-<div id="sandbox-banner" style="display:none">
-  <span>⚠ SANDBOX-TILA — muutokset eivät vaikuta oikeaan dataan</span>
-  <span style="margin-left:12px;opacity:.7">|</span>
-  <button onclick="copyProdToSandbox()" style="margin-left:10px;padding:2px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);color:#fff;font-size:12px;cursor:pointer;font-weight:600">⬇ Kopioi tuotantodata</button>
-  <button onclick="toggleSandbox()" style="margin-left:8px;padding:2px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);color:#fff;font-size:12px;cursor:pointer;font-weight:600">✕ Poistu</button>
-</div>
+<!-- ── APP SHELL ─────────────────────────── -->
+<div id="app">
 
-<!-- ── HEADER ────────────────────────────── -->
-<div id="header">
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="logo">Work<span>OS</span></div>
-    <div id="sync-status">
-      <div id="sync-dot" class="offline"></div>
-      <span id="sync-text">Ei yhteyttä</span>
-    </div>
-  </div>
-  <div class="header-right">
-    <button id="btn-signin-small" onclick="startSignIn()" style="display:none">Kirjaudu</button>
-    <div id="user-menu" style="display:none;position:relative">
-      <div id="user-avatar" onclick="toggleUserMenu()"
-           style="width:32px;height:32px;border-radius:50%;background:var(--dark-br);color:var(--accent);
-                  border:1.5px solid var(--primary);
-                  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
-                  cursor:pointer;user-select:none" title="Tili">T</div>
-      <div id="user-dropdown" style="display:none;position:absolute;right:0;top:42px;
-           background:var(--surface-2);border:1px solid var(--border-2);border-radius:12px;
-           box-shadow:var(--shadow-lg);min-width:180px;overflow:hidden;z-index:150">
-        <div id="user-email" style="padding:10px 14px;font-size:11px;color:var(--text-3);border-bottom:1px solid var(--border)"></div>
-        <div onclick="toggleSandbox()" id="sandbox-menu-item"
-             style="padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text-2)"
-             onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
-          🧪 Sandbox-tila
-        </div>
-        <div onclick="signOut()" style="padding:10px 14px;font-size:13px;cursor:pointer;color:#f87171"
-             onmouseover="this.style.background='rgba(248,113,113,.08)'" onmouseout="this.style.background=''">
-          Vaihda tili / kirjaudu ulos
+  <!-- ── SIDEBAR ─────────────────────────── -->
+  <div id="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">Work<span>OS</span>
+        <div id="sync-status" style="font-size:10px">
+          <div id="sync-dot" class="offline"></div>
+          <span id="sync-text"></span>
         </div>
       </div>
+      <div class="sidebar-search">
+        <input id="search-input" type="text" placeholder="Hae…"
+               oninput="onSearch(event)" autocomplete="off">
+      </div>
     </div>
-    <button id="btn-search" onclick="toggleSearch()" title="Haku"
-            style="width:34px;height:34px;border-radius:9px;border:1px solid var(--border-2);
-                   background:var(--surface-2);font-size:15px;cursor:pointer;color:var(--text-3);
-                   display:flex;align-items:center;justify-content:center;transition:color .12s">🔍</button>
-    <button id="btn-fetch" onclick="fetchEmails()" title="Hae sähköpostit"
-            style="display:none;padding:0 12px;height:34px;border-radius:9px;border:1px solid var(--border-2);
-                   background:var(--surface-2);font-size:12px;font-weight:700;cursor:pointer;color:var(--accent);
-                   white-space:nowrap;letter-spacing:.2px">✉ Hae</button>
-    <button id="btn-add" onclick="openAdd()" title="Uusi merkintä">+</button>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-bottom" id="sidebar-bottom"></div>
+  </div>
+
+  <!-- ── MOBILE SIDEBAR OVERLAY ──────────── -->
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── MAIN ────────────────────────────── -->
+  <div id="main">
+    <!-- Mobile top bar -->
+    <div id="mobile-bar">
+      <button id="btn-hamburger" onclick="openSidebar()">☰</button>
+      <div class="mobile-logo">Work<span>OS</span></div>
+      <div class="mobile-right">
+        <button id="btn-add-mobile" onclick="openAdd()"
+          style="width:34px;height:34px;border-radius:9px;background:var(--primary);
+                 color:#fff;border:none;cursor:pointer;font-size:20px;
+                 display:flex;align-items:center;justify-content:center">+</button>
+      </div>
+    </div>
+
+    <!-- Desktop top bar -->
+    <div id="topbar">
+      <div id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <button id="btn-signin-small" onclick="startSignIn()" style="display:none">Kirjaudu</button>
+        <div id="user-menu" style="display:none;position:relative">
+          <div id="user-avatar" onclick="toggleUserMenu()"
+               style="width:32px;height:32px;border-radius:50%;background:var(--dark-br);color:var(--accent);
+                      border:1.5px solid var(--primary);font-size:12px;font-weight:700;
+                      display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none">T</div>
+          <div id="user-dropdown" style="display:none;position:absolute;right:0;top:42px;
+               background:var(--surface-2);border:1px solid var(--border-2);border-radius:12px;
+               box-shadow:var(--shadow-lg);min-width:180px;overflow:hidden;z-index:150">
+            <div id="user-email" style="padding:10px 14px;font-size:11px;color:var(--text-3);border-bottom:1px solid var(--border)"></div>
+            <div onclick="signOut()" style="padding:10px 14px;font-size:13px;cursor:pointer;color:#f87171"
+                 onmouseover="this.style.background='rgba(248,113,113,.08)'" onmouseout="this.style.background=''">
+              Vaihda tili / kirjaudu ulos
+            </div>
+          </div>
+        </div>
+        <button id="btn-fetch" onclick="fetchEmails()" title="Hae sähköpostit"
+                style="display:none;padding:0 12px;height:34px;border-radius:9px;border:1px solid var(--border-2);
+                       background:var(--surface-2);font-size:12px;font-weight:700;cursor:pointer;color:var(--accent);
+                       white-space:nowrap;letter-spacing:.2px">✉ Hae</button>
+        <button id="btn-add" onclick="openAdd()" title="Uusi merkintä (N)">+</button>
+      </div>
+    </div>
+
+    <!-- Sandbox banner -->
+    <div id="sandbox-banner" style="display:none">
+      <span>⚠ SANDBOX-TILA</span>
+      <button onclick="copyProdToSandbox()" style="padding:2px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:inherit;font-size:11px;cursor:pointer;font-weight:600">⬇ Kopioi tuotantodata</button>
+      <button onclick="toggleSandbox()" style="padding:2px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:inherit;font-size:11px;cursor:pointer;font-weight:600">✕ Poistu</button>
+    </div>
+
+    <!-- Content -->
+    <div id="content"><div class="content-inner" id="content-inner"></div></div>
   </div>
 </div>
-
-<!-- ── SEARCH BAR ────────────────────────── -->
-<div id="search-bar">
-  <input id="search-input" type="text" placeholder="Hae kaikista merkinnöistä…"
-         oninput="onSearch(event)" autocomplete="off">
-</div>
-
-<!-- ── TABS ──────────────────────────────── -->
-<div id="tabs"></div>
-
-<!-- ── CONTENT ───────────────────────────── -->
-<div id="content"></div>
 
 <!-- ── MODAL ─────────────────────────────── -->
 <div id="overlay" onclick="overlayClick(event)">
@@ -754,10 +978,14 @@ const SANDBOX_FILE_NAME = 'workos_sandbox.json';
 // ═══════════════════════════════════════════════
 const S = {
   items: [],
-  groups: [],            // memo altaat: [{id,name,order,archived,collapsed}]
+  groups: [],            // knowledge pools: [{id,name,order,archived,collapsed}]
   showArchivedGroups: false,
-  dragItemId: null,      // drag state (local only)
-  tab: 'todo',
+  dragItemId: null,
+  view: 'dashboard',     // 'dashboard'|'inbox'|'tasks'|'knowledge'|'ai'
+  // kept for legacy compatibility (some functions still reference S.tab)
+  get tab() { return this.view; },
+  tasksFilter: 'all',    // 'all'|'today'|'overdue'|'nodeadline'
+  knowledgeFilter: 'all',// 'all'|'MEMO'|'DECISION'|'QUESTION'|'MEETING'|'FOLLOW-UP'
   showDone: false,
   searchQuery: '',
   sandbox: localStorage.getItem('wos_sandbox') === '1',
@@ -1110,7 +1338,7 @@ async function fetchEmails() {
       }
       // Lisää parsitut merkinnät
       for (const item of parsed) {
-        S.items.unshift({ ...item, id: uid(), status: 'open', createdAt: new Date().toISOString() });
+        S.items.unshift({ ...item, id: uid(), status: 'open', inboxed: true, createdAt: new Date().toISOString() });
         added++;
       }
       // Merkitse luetuksi (poista UNREAD-label)
@@ -1502,7 +1730,9 @@ function dropMemoOnGroup(event, groupId) {
 // ═══════════════════════════════════════════════
 // TAB LOGIC
 // ═══════════════════════════════════════════════
-const MEMO_TYPES = new Set(['MEMO', 'DECISION']);
+const MEMO_TYPES      = new Set(['MEMO', 'DECISION']);
+const TASK_TYPES      = new Set(['TODO', 'MEETING', 'FOLLOW-UP']);
+const KNOWLEDGE_TYPES = new Set(['MEMO', 'DECISION', 'QUESTION']);
 
 function applySearch(items) {
   if (!S.searchQuery) return items;
@@ -1514,22 +1744,21 @@ function applySearch(items) {
 }
 
 function tabItems(tab) {
+  // legacy helper still used in a few places
   const visible = S.showDone ? S.items : S.items.filter(x => x.status === 'open');
   let result;
   switch(tab) {
-    case 'todo':
-      result = visible.filter(x => x.type !== 'QUESTION' && !MEMO_TYPES.has(x.type));
-      break;
+    case 'tasks': case 'todo':
+      result = visible.filter(x => TASK_TYPES.has(x.type)); break;
+    case 'knowledge': case 'memos':
+      result = S.showDone ? S.items.filter(x => KNOWLEDGE_TYPES.has(x.type))
+                          : S.items.filter(x => KNOWLEDGE_TYPES.has(x.type) && x.status === 'open'); break;
+    case 'inbox':
+      result = S.items.filter(x => x.inboxed); break;
     case 'questions':
       result = S.showDone ? S.items.filter(x => x.type === 'QUESTION')
-                          : S.items.filter(x => x.type === 'QUESTION' && x.status === 'open');
-      break;
-    case 'memos':
-      result = S.showDone ? S.items.filter(x => MEMO_TYPES.has(x.type))
-                          : S.items.filter(x => MEMO_TYPES.has(x.type) && x.status === 'open');
-      break;
-    default:
-      result = [];
+                          : S.items.filter(x => x.type === 'QUESTION' && x.status === 'open'); break;
+    default: result = [];
   }
   return applySearch(result);
 }
@@ -1581,142 +1810,383 @@ function effectiveSection(item) {
   return 'later';
 }
 
-function render() { renderTabs(); renderContent(); }
+function render() { renderSidebar(); renderView(); }
 
-function renderTabs() {
-  document.getElementById('tabs').innerHTML = TABS.map(t => {
-    const n = openItemCount(t.id);
-    const badge = n > 0 ? `<span class="tab-badge">${n}</span>` : '';
-    return `<div class="tab ${S.tab===t.id?'active':''}" onclick="setTab('${t.id}')">${t.label}${badge}</div>`;
-  }).join('');
+function renderSidebar() {
+  const inboxCount = S.items.filter(x => x.inboxed && x.status === 'open').length;
+  const tasksCount = S.items.filter(x => TASK_TYPES.has(x.type) && x.status === 'open').length;
+  const knowledgeCount = S.items.filter(x => KNOWLEDGE_TYPES.has(x.type) && x.status === 'open').length;
+
+  const navItems = [
+    { id:'dashboard', icon:'⊞', label:'Dashboard' },
+    { id:'inbox',     icon:'✉', label:'Inbox', badge: inboxCount },
+    { id:'tasks',     icon:'✓', label:'Tasks', badge: tasksCount },
+    { id:'knowledge', icon:'◈', label:'Knowledge', badge: knowledgeCount },
+    { id:'ai',        icon:'✦', label:'AI', dim: true },
+  ];
+
+  document.getElementById('sidebar-nav').innerHTML = navItems.map(item => `
+    <div class="nav-item ${S.view===item.id?'active':''} ${item.dim?'dim':''}" onclick="setView('${item.id}')">
+      <span class="nav-item-icon">${item.icon}</span>
+      <span class="nav-item-label">${item.label}</span>
+      ${item.badge ? `<span class="nav-badge">${item.badge}</span>` : ''}
+    </div>`).join('');
+
+  const sbItem = document.getElementById('sandbox-menu-item');
+  document.getElementById('sidebar-bottom').innerHTML = `
+    <div class="nav-item" onclick="toggleSandbox()" id="sandbox-menu-item"
+         style="${S.sandbox?'color:var(--accent)':''}">
+      <span class="nav-item-icon">🧪</span>
+      <span class="nav-item-label">${S.sandbox ? 'Sandbox: ON' : 'Sandbox'}</span>
+      ${S.sandbox ? '<span style="width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0"></span>' : ''}
+    </div>`;
+
+  // Update topbar title
+  const viewLabels = { dashboard:'Dashboard', inbox:'Inbox', tasks:'Tasks', knowledge:'Knowledge', ai:'AI' };
+  const titleEl = document.getElementById('topbar-title');
+  if (titleEl) titleEl.textContent = viewLabels[S.view] || '';
 }
 
-function renderContent() {
-  const items = tabItems(S.tab);
-  const container = document.getElementById('content');
+
+
+function setInner(html) {
+  const el = document.getElementById('content-inner');
+  if (el) el.innerHTML = html;
+}
+
+function renderView() {
+  switch(S.view) {
+    case 'dashboard':  renderDashboard(); break;
+    case 'inbox':      renderInbox(); break;
+    case 'tasks':      renderTasksView(); break;
+    case 'knowledge':  renderKnowledgeView(); break;
+    case 'ai':         renderAI(); break;
+    default:           renderDashboard();
+  }
+}
+
+// ── DASHBOARD ───────────────────────────────────
+function renderDashboard() {
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Hyvää huomenta' : hour < 17 ? 'Hyvää päivää' : 'Hyvää iltaa';
+  const dateStr = now.toLocaleDateString('fi-FI', {weekday:'long', day:'numeric', month:'long'});
+
+  const openTasks = S.items.filter(x => TASK_TYPES.has(x.type) && x.status === 'open');
+  const t = today();
+
+  // Next action = earliest deadline task, or oldest escalated
+  const todayTasks = openTasks.filter(x => effectiveSection(x) === 'today' || effectiveSection(x) === 'week')
+    .sort((a,b) => {
+      const da = a.deadline ? parseDate(a.deadline) : new Date(a.createdAt||0);
+      const db = b.deadline ? parseDate(b.deadline) : new Date(b.createdAt||0);
+      return da - db;
+    });
+  const nextAction = todayTasks[0];
+
+  const todayMeetings = S.items.filter(x => x.type === 'MEETING' && x.status === 'open' && effectiveSection(x) === 'today');
+  const followUps = S.items.filter(x => x.type === 'FOLLOW-UP' && x.status === 'open');
+  const openQuestions = S.items.filter(x => x.type === 'QUESTION' && x.status === 'open');
+  const recentDecisions = S.items.filter(x => x.type === 'DECISION').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).slice(0,3);
+  const recentMemos = S.items.filter(x => x.type === 'MEMO' && x.status === 'open').sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).slice(0,3);
+  const inboxCount = S.items.filter(x => x.inboxed && x.status === 'open').length;
+
+  const typeColor = { TODO:'var(--c-todo)', MEETING:'var(--c-meeting)', 'FOLLOW-UP':'var(--c-followup)' };
+
+  let html = `
+  <div class="dashboard-greeting">
+    <h2>${greeting}, Tapio 👋</h2>
+    <p>${dateStr.charAt(0).toUpperCase() + dateStr.slice(1)}</p>
+  </div>`;
+
+  if (inboxCount > 0) {
+    html += `<div class="dash-card" style="margin-bottom:14px;border-color:var(--accent);background:var(--primary-bg)">
+      <div class="dash-card-head">
+        <span class="dash-card-label">📥 Inbox</span>
+        <span class="dash-card-action" onclick="setView('inbox')">Käsittele →</span>
+      </div>
+      <div style="font-size:14px;color:var(--accent);font-weight:600">${inboxCount} uutta asiaa odottaa käsittelyä</div>
+    </div>`;
+  }
+
+  // Row 1: Next Action + Today summary
+  html += `<div class="dashboard-grid" style="margin-bottom:14px">
+    <div class="dash-card" style="grid-column:1/-1">
+      <div class="dash-card-head">
+        <span class="dash-card-label">⚡ Next Action</span>
+        <span class="dash-card-action" onclick="setView('tasks')">Kaikki tehtävät →</span>
+      </div>
+      ${nextAction ? `
+        <div class="next-action-item" onclick="openEdit('${nextAction.id}')">
+          <div class="next-action-title">${esc(nextAction.title)}</div>
+          <div class="next-action-meta">${nextAction.type}${nextAction.deadline ? ' · ' + nextAction.deadline : ''}</div>
+        </div>` : `<div class="dash-empty">Ei kiireellisiä tehtäviä — hyvä työ!</div>`}
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="dash-card">
+      <div class="dash-card-head"><span class="dash-card-label">📅 Tänään</span></div>
+      <div class="dash-stat-row">
+        <div class="dash-stat">
+          <div class="dash-stat-num" style="color:var(--c-todo)">${openTasks.filter(x=>effectiveSection(x)==='today').length}</div>
+          <div class="dash-stat-label">Tehtävää</div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-num" style="color:var(--c-meeting)">${todayMeetings.length}</div>
+          <div class="dash-stat-label">Kokousta</div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-num" style="color:var(--c-followup)">${followUps.filter(x=>effectiveSection(x)==='today').length}</div>
+          <div class="dash-stat-label">Seurantaa</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <div class="dash-card-head">
+        <span class="dash-card-label">❓ Avoimet kysymykset</span>
+        <span class="dash-card-action" onclick="setView('knowledge');S.knowledgeFilter='QUESTION';render()">→</span>
+      </div>
+      ${openQuestions.length === 0
+        ? `<div class="dash-empty">Ei avoimia kysymyksiä</div>`
+        : openQuestions.slice(0,3).map(q => `
+          <div class="dash-list-item" onclick="openEdit('${q.id}')">
+            <div class="dash-list-dot" style="background:var(--c-question)"></div>
+            <div class="dash-list-text">${esc(q.title)}</div>
+          </div>`).join('') + (openQuestions.length > 3 ? `<div style="font-size:11px;color:var(--text-3);padding-top:4px">+${openQuestions.length-3} lisää</div>` : '')}
+    </div>
+
+    <div class="dash-card">
+      <div class="dash-card-head">
+        <span class="dash-card-label">⚡ Viimeisimmät päätökset</span>
+        <span class="dash-card-action" onclick="setView('knowledge');S.knowledgeFilter='DECISION';render()">→</span>
+      </div>
+      ${recentDecisions.length === 0
+        ? `<div class="dash-empty">Ei päätöksiä</div>`
+        : recentDecisions.map(d => `
+          <div class="dash-list-item" onclick="openEdit('${d.id}')">
+            <div class="dash-list-dot" style="background:var(--c-decision)"></div>
+            <div class="dash-list-text">${esc(d.title)}</div>
+            <div class="dash-list-meta">${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fi-FI',{day:'numeric',month:'numeric'}) : ''}</div>
+          </div>`).join('')}
+    </div>
+
+    <div class="dash-card">
+      <div class="dash-card-head">
+        <span class="dash-card-label">📝 Viimeisimmät muistiinpanot</span>
+        <span class="dash-card-action" onclick="setView('knowledge');S.knowledgeFilter='MEMO';render()">→</span>
+      </div>
+      ${recentMemos.length === 0
+        ? `<div class="dash-empty">Ei muistiinpanoja</div>`
+        : recentMemos.map(m => `
+          <div class="dash-list-item" onclick="openEdit('${m.id}')">
+            <div class="dash-list-dot" style="background:var(--c-memo)"></div>
+            <div class="dash-list-text">${esc(m.title)}</div>
+            <div class="dash-list-meta">${m.createdAt ? new Date(m.createdAt).toLocaleDateString('fi-FI',{day:'numeric',month:'numeric'}) : ''}</div>
+          </div>`).join('')}
+    </div>
+  </div>`;
+
+  setInner(html);
+}
+
+// ── INBOX ────────────────────────────────────────
+function renderInbox() {
+  const inboxItems = applySearch(S.items.filter(x => x.inboxed));
   let html = '';
 
-  if (S.tab === 'todo') {
-    if (S.searchQuery && items.length === 0) {
-      container.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><h3>Ei hakutuloksia</h3><p>Haulla "${esc(S.searchQuery)}" ei löydy mitään.</p></div>`;
-      appendDoneToggle(container);
-      return;
-    }
-
-    const t = today();
-    const overdue  = items.filter(x => x.status==='open' && effectiveSection(x)==='today' && x.deadline && parseDate(x.deadline) < t);
-    const todayDue = items.filter(x => x.status==='open' && effectiveSection(x)==='today' && !(x.deadline && parseDate(x.deadline) < t));
-    const weekItems = items.filter(x => x.status==='open' && effectiveSection(x)==='week');
-    const laterItems = items.filter(x => x.status==='open' && effectiveSection(x)==='later');
-    const doneItems  = items.filter(x => x.status==='done');
-
-    function sectionHtml(label, cls, list, emptyText) {
-      const count = list.length;
-      const countBadge = count > 0 ? `<span class="sec-count">${count}</span>` : '';
-      const inner = count > 0 ? list.map(cardHtml).join('') : (emptyText ? `<div class="todo-section-empty">${emptyText}</div>` : '');
-      return `<div class="todo-section">
-        <div class="todo-section-head ${cls}">${label}${countBadge}</div>
-        ${inner}
+  if (inboxItems.length === 0) {
+    html = `<div class="empty"><div class="empty-icon">📭</div><h3>Inbox tyhjä</h3><p>Kaikki käsitelty!</p></div>`;
+  } else {
+    html += `<div style="font-size:12px;color:var(--text-3);margin-bottom:14px">${inboxItems.filter(x=>x.status==='open').length} käsittelemätöntä</div>`;
+    inboxItems.forEach(item => {
+      const typeDot = `<div class="dash-list-dot" style="background:var(--c-${item.type.toLowerCase().replace('-','')});margin-top:3px;flex-shrink:0"></div>`;
+      html += `<div class="inbox-item">
+        ${typeDot}
+        <div class="inbox-item-body">
+          <div class="inbox-item-title">${esc(item.title)}</div>
+          ${item.content ? `<div class="inbox-item-content">${esc(item.content)}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span class="type-badge type-badge-${esc(item.type)}">${esc(item.type)}</span>
+            <span style="font-size:11px;color:var(--text-3)">${item.createdAt ? new Date(item.createdAt).toLocaleDateString('fi-FI') : ''}</span>
+          </div>
+          <div class="inbox-item-actions">
+            <button class="inbox-btn accept" onclick="acceptInboxItem('${item.id}')">✓ Hyväksy</button>
+            <button class="inbox-btn" onclick="openEdit('${item.id}')">✎ Muokkaa</button>
+            <button class="inbox-btn discard" onclick="discardInboxItem('${item.id}')">✕ Hylkää</button>
+          </div>
+        </div>
       </div>`;
+    });
+  }
+
+  setInner(html);
+}
+
+function acceptInboxItem(id) {
+  updateItem(id, { inboxed: false });
+  showToast('Hyväksytty ✓');
+}
+
+function discardInboxItem(id) {
+  if (!confirm('Poistetaanko tämä asia?')) return;
+  deleteItem(id);
+}
+
+// ── TASKS VIEW ───────────────────────────────────
+function renderTasksView() {
+  const allTasks = S.showDone
+    ? S.items.filter(x => TASK_TYPES.has(x.type))
+    : S.items.filter(x => TASK_TYPES.has(x.type) && x.status === 'open');
+  let items = applySearch(allTasks);
+  const t = today();
+
+  // Apply filter
+  if (S.tasksFilter === 'today') {
+    items = items.filter(x => x.status === 'open' && (effectiveSection(x) === 'today' || effectiveSection(x) === 'week'));
+  } else if (S.tasksFilter === 'overdue') {
+    items = items.filter(x => x.status === 'open' && x.deadline && parseDate(x.deadline) < t);
+  } else if (S.tasksFilter === 'nodeadline') {
+    items = items.filter(x => x.status === 'open' && !x.deadline);
+  }
+
+  const overdue   = items.filter(x => x.status==='open' && x.deadline && parseDate(x.deadline) < t);
+  const todayDue  = items.filter(x => x.status==='open' && effectiveSection(x)==='today' && !(x.deadline && parseDate(x.deadline) < t));
+  const weekItems = items.filter(x => x.status==='open' && effectiveSection(x)==='week');
+  const laterItems = items.filter(x => x.status==='open' && effectiveSection(x)==='later');
+  const doneItems  = items.filter(x => x.status==='done');
+
+  const filters = [
+    {id:'all', label:'Kaikki'},
+    {id:'today', label:'Tänään / Tällä viikolla'},
+    {id:'overdue', label:'Myöhässä'},
+    {id:'nodeadline', label:'Ilman deadlinea'},
+  ];
+
+  function sectionHtml(label, cls, list, emptyText) {
+    const count = list.length;
+    const countBadge = count > 0 ? `<span class="sec-count">${count}</span>` : '';
+    const inner = count > 0 ? list.map(cardHtml).join('') : (emptyText ? `<div class="todo-section-empty">${emptyText}</div>` : '');
+    return `<div class="todo-section">
+      <div class="todo-section-head ${cls}">${label}${countBadge}</div>
+      ${inner}
+    </div>`;
+  }
+
+  let html = `<div class="view-filters">${filters.map(f =>
+    `<button class="filter-btn ${S.tasksFilter===f.id?'active':''}" onclick="S.tasksFilter='${f.id}';render()">${f.label}</button>`
+  ).join('')}</div>`;
+
+  if (S.searchQuery && items.length === 0) {
+    html += `<div class="empty"><div class="empty-icon">🔍</div><h3>Ei hakutuloksia</h3></div>`;
+    setInner(html); return;
+  }
+
+  if (overdue.length)    html += sectionHtml('⚠ Myöhässä', 'sec-overdue', overdue, '');
+  html += sectionHtml('Tänään', 'sec-today', todayDue, 'Ei tehtäviä — hyvin tehty!');
+
+  if (weekItems.length) {
+    const byDate = {}, escalated = [];
+    weekItems.forEach(x => {
+      if (!x.deadline) { escalated.push(x); return; }
+      if (!byDate[x.deadline]) byDate[x.deadline] = [];
+      byDate[x.deadline].push(x);
+    });
+    let weekHtml = '';
+    Object.keys(byDate).sort().forEach(k => {
+      const d = parseDate(k);
+      const lbl = d ? d.toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'}) : k;
+      weekHtml += `<div class="sec-head" style="font-size:11px;padding:6px 14px 3px;color:var(--text-3)">${lbl.charAt(0).toUpperCase()+lbl.slice(1)}</div>`;
+      weekHtml += byDate[k].map(cardHtml).join('');
+    });
+    if (escalated.length) {
+      weekHtml += `<div class="sec-head" style="font-size:11px;padding:6px 14px 3px;color:var(--c-followup)">⏳ Nostettu — ei deadlinea</div>`;
+      weekHtml += escalated.map(cardHtml).join('');
     }
-
-    if (overdue.length)   html += sectionHtml('⚠ Myöhässä', 'sec-overdue', overdue, '');
-    html += sectionHtml('Tänään', 'sec-today', todayDue, 'Ei tehtäviä — hyvin tehty!');
-
-    // Week section: group by date for items with a real deadline, show escalated last
-    if (weekItems.length) {
-      const byDate = {};
-      const escalated = [];
-      weekItems.forEach(x => {
-        if (!x.deadline) { escalated.push(x); return; }
-        const k = x.deadline;
-        if (!byDate[k]) byDate[k] = [];
-        byDate[k].push(x);
-      });
-      let weekHtml = '';
-      Object.keys(byDate).sort().forEach(k => {
-        const d = parseDate(k);
-        const label = d ? d.toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'}) : k;
-        weekHtml += `<div class="sec-head" style="font-size:11px;padding:6px 14px 3px;color:var(--text-3)">${label.charAt(0).toUpperCase()+label.slice(1)}</div>`;
-        weekHtml += byDate[k].map(cardHtml).join('');
-      });
-      if (escalated.length) {
-        weekHtml += `<div class="sec-head" style="font-size:11px;padding:6px 14px 3px;color:#c2410c">⏳ Nostettu — ei deadlinea</div>`;
-        weekHtml += escalated.map(cardHtml).join('');
-      }
-      html += `<div class="todo-section">
-        <div class="todo-section-head sec-week">Tällä viikolla<span class="sec-count">${weekItems.length}</span></div>
-        ${weekHtml}
-      </div>`;
-    } else {
-      html += `<div class="todo-section">
-        <div class="todo-section-head sec-week">Tällä viikolla<span class="sec-count" style="opacity:.4">0</span></div>
-        <div class="todo-section-empty">Ei tehtäviä tälle viikolle.</div>
-      </div>`;
-    }
-
-    html += sectionHtml('Myöhemmin', '', laterItems, 'Ei tulevia tehtäviä.');
-
-    if (S.showDone && doneItems.length) {
-      html += sectionHtml('✅ Valmiit', '', doneItems, '');
-    }
-
-    container.innerHTML = html;
-    appendDoneToggle(container);
-    return;
+    html += `<div class="todo-section"><div class="todo-section-head sec-week">Tällä viikolla<span class="sec-count">${weekItems.length}</span></div>${weekHtml}</div>`;
+  } else {
+    html += `<div class="todo-section"><div class="todo-section-head sec-week">Tällä viikolla<span class="sec-count" style="opacity:.4">0</span></div><div class="todo-section-empty">Ei tehtäviä tälle viikolle.</div></div>`;
   }
 
-  // ── Memos tab — always uses group renderer ──
-  if (S.tab === 'memos') {
-    container.innerHTML = renderMemos(items);
-    appendDoneToggle(container);
-    loadMemoImages();
-    return;
+  html += sectionHtml('Myöhemmin', '', laterItems, 'Ei tulevia tehtäviä.');
+
+  if (S.showDone && doneItems.length) html += sectionHtml('✅ Valmiit', '', doneItems, '');
+
+  // Done toggle
+  const doneCount = S.items.filter(x => TASK_TYPES.has(x.type) && x.status==='done').length;
+  if (!S.showDone && doneCount > 0) {
+    html += `<div id="show-done-toggle" onclick="toggleShowDone()">▼ Näytä valmiit (${doneCount})</div>`;
+  } else if (S.showDone) {
+    html += `<div id="show-done-toggle" onclick="toggleShowDone()">▲ Piilota valmiit</div>`;
   }
 
-  // ── Other non-todo tabs ──────────────────────
-  if (items.length === 0) {
-    const msgs = {
-      questions: ['❓','Ei avoimia kysymyksiä','Kaikki selvitetty!'],
-    };
-    const [icon, h, p] = msgs[S.tab] || ['📋','Tyhjä',''];
-    const emptyMsg = S.searchQuery
-      ? `<div class="empty"><div class="empty-icon">🔍</div><h3>Ei hakutuloksia</h3><p>Haulla "${esc(S.searchQuery)}" ei löydy mitään.</p></div>`
-      : `<div class="empty"><div class="empty-icon">${icon}</div><h3>${h}</h3><p>${p}</p></div>`;
-    container.innerHTML = emptyMsg;
-    appendDoneToggle(container);
-    return;
+  setInner(html);
+}
+
+// ── KNOWLEDGE VIEW ───────────────────────────────
+function renderKnowledgeView() {
+  const allKnowledge = S.showDone
+    ? S.items.filter(x => KNOWLEDGE_TYPES.has(x.type))
+    : S.items.filter(x => KNOWLEDGE_TYPES.has(x.type) && x.status === 'open');
+  let items = applySearch(allKnowledge);
+
+  if (S.knowledgeFilter !== 'all') {
+    items = items.filter(x => x.type === S.knowledgeFilter);
   }
 
-  {
-    html = items.map(cardHtml).join('');
-  }
+  const typeFilters = [
+    {id:'all', label:'Kaikki'},
+    {id:'MEMO', label:'Muistiinpanot'},
+    {id:'DECISION', label:'Päätökset'},
+    {id:'QUESTION', label:'Kysymykset'},
+  ];
 
-  container.innerHTML = html;
-  appendDoneToggle(container);
+  let html = `<div class="knowledge-type-filter">${typeFilters.map(f =>
+    `<button class="kf-btn ${S.knowledgeFilter===f.id?'active':''}" onclick="S.knowledgeFilter='${f.id}';render()">${f.label}</button>`
+  ).join('')}</div>`;
+
+  html += renderMemos(items);
+  setInner(html);
+
+  setTimeout(loadMemoImages, 50);
+}
+
+// ── AI VIEW ──────────────────────────────────────
+function renderAI() {
+  const suggestions = [
+    { icon:'📋', text:'Mitkä tehtävät ovat jumissa?' },
+    { icon:'❓', text:'Mitä avoimia kysymyksiä minulla on?' },
+    { icon:'⚡', text:'Mitä päätöksiä tehtiin viime viikolla?' },
+    { icon:'📅', text:'Mitä kokouksia on tällä viikolla?' },
+  ];
+  setInner(`
+    <div style="max-width:560px;margin:0 auto;padding-top:20px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:32px;margin-bottom:8px">✦</div>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px">WorkOS AI</h2>
+        <p style="font-size:13px;color:var(--text-3)">Tulossa pian — AI-avustaja kaikelle WorkOS-datallesi</p>
+      </div>
+      <div class="ai-search-box">
+        <input class="ai-search-input" placeholder="Kysy WorkOS:lta…" disabled>
+        <button class="ai-send-btn" disabled style="opacity:.4">→</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:14px;text-align:center">Esimerkkejä mitä voit kysyä:</div>
+      <div class="ai-suggestions">${suggestions.map(s =>
+        `<div class="ai-suggestion"><span>${s.icon}</span>${esc(s.text)}</div>`).join('')}
+      </div>
+    </div>`);
+}
+
+function appendDoneToggle(container) {
+  // no-op — done toggles are now built into each view renderer
 }
 
 function doneCountForTab(tab) {
   const done = S.items.filter(x => x.status === 'done');
-  switch(tab) {
-    case 'todo':
-      return done.filter(x => x.type !== 'QUESTION' && !MEMO_TYPES.has(x.type)).length;
-    case 'questions':
-      return done.filter(x => x.type==='QUESTION').length;
-    case 'memos':
-      return done.filter(x => MEMO_TYPES.has(x.type)).length;
-  }
-  return 0;
-}
-
-function appendDoneToggle(container) {
-  const doneCount = doneCountForTab(S.tab);
-  if (!S.showDone && doneCount === 0) return;
-  const el = document.createElement('div');
-  el.id = 'show-done-toggle';
-  el.onclick = toggleShowDone;
-  el.textContent = S.showDone ? '▲ Piilota valmiit' : `▼ Näytä valmiit (${doneCount})`;
-  container.appendChild(el);
+  if (tab === 'tasks') return done.filter(x => TASK_TYPES.has(x.type)).length;
+  if (tab === 'knowledge') return done.filter(x => KNOWLEDGE_TYPES.has(x.type)).length;
+  return done.filter(x => TASK_TYPES.has(x.type)).length;
 }
 
 function esc(s) {
@@ -1958,6 +2428,27 @@ function buildModal() {
       </div>
     </div>`;
 
+  // Project/pool selector
+  const activeGroups = S.groups.filter(g => !g.archived).sort((a,b) => a.order - b.order);
+  const currentGroupId = (mode === 'edit' && item) ? (item.groupId || '') : '';
+  const projectRow = activeGroups.length > 0 ? `
+    <div class="form-row">
+      <label class="form-label">Projekti / Allas <span style="font-weight:400;color:var(--text-3)">(valinnainen)</span></label>
+      <select id="m-project" class="form-input" style="cursor:pointer">
+        <option value="">— Ei altaassa —</option>
+        ${activeGroups.map(g => `<option value="${esc(g.id)}" ${currentGroupId===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}
+      </select>
+    </div>` : '';
+
+  // Tags
+  const currentTags = (mode === 'edit' && item) ? (item.tags || []).join(', ') : '';
+  const tagsRow = `
+    <div class="form-row">
+      <label class="form-label">Tagit <span style="font-weight:400;color:var(--text-3)">(pilkulla erotettuna)</span></label>
+      <input id="m-tags" class="form-input" type="text"
+             placeholder="esim. erp, projekti-x" value="${esc(currentTags)}">
+    </div>`;
+
   document.getElementById('modal').innerHTML = `
     <div class="modal-handle"></div>
     <div class="modal-title">${mode==='edit'?'Muokkaa merkintää':'Uusi merkintä'}</div>
@@ -1965,7 +2456,7 @@ function buildModal() {
     <div class="form-row">
       <label class="form-label">Otsikko</label>
       <input id="m-title" class="form-input" type="text"
-             placeholder="Kuvaa lyhyesti…" value="${titleVal}">
+             placeholder="Kuvaa lyhyesti…" value="${titleVal}" autofocus>
     </div>
     <div class="form-row">
       <label class="form-label">Lisätiedot <span style="font-weight:400;color:var(--text-3)">(valinnainen)</span></label>
@@ -1976,6 +2467,8 @@ function buildModal() {
       <label class="form-label">Deadline</label>
       ${pills}
     </div>
+    ${projectRow}
+    ${tagsRow}
     ${imgsSection}
     <button class="btn-save" onclick="saveModal()">
       ${mode==='edit'?'Tallenna muutokset':'Lisää merkintä'}
@@ -2029,13 +2522,16 @@ function saveModal() {
   const content = (document.getElementById('m-content')?.value || '').trim();
   const type = S.modal.type;
   const deadline = ['MEMO','DECISION'].includes(type) ? null : (S.modal.deadline || null);
+  const groupId = document.getElementById('m-project')?.value || null;
+  const tagsRaw = (document.getElementById('m-tags')?.value || '').trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
 
   if (S.modal.mode === 'edit') {
-    updateItem(S.modal.item.id, { title, content, type, deadline });
+    updateItem(S.modal.item.id, { title, content, type, deadline, groupId: groupId||null, tags });
     showToast('Tallennettu ✓');
   } else {
     const images = S.modal.pendingImages || [];
-    addItem({ title, content, type, deadline, images });
+    addItem({ title, content, type, deadline, groupId: groupId||null, tags, images });
   }
   closeModal();
 }
@@ -2134,10 +2630,25 @@ function doDelete(id) {
 // UI HELPERS
 // ═══════════════════════════════════════════════
 // Map legacy tab ids to new ones (today/week/later → todo)
-function setTab(t) {
-  const legacyMap = { today:'todo', week:'todo', later:'todo' };
-  S.tab = legacyMap[t] || t;
+function setView(v) {
+  S.view = v;
+  closeSidebar();
   render();
+}
+
+// legacy alias
+function setTab(t) {
+  const legacyMap = { todo:'tasks', today:'tasks', week:'tasks', later:'tasks', memos:'knowledge', questions:'knowledge' };
+  setView(legacyMap[t] || t);
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('on');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('on');
 }
 function toggleShowDone() { S.showDone = !S.showDone; render(); }
 
@@ -2162,10 +2673,7 @@ function applysandbox() {
   document.body.classList.toggle('sandbox', S.sandbox);
   const banner = document.getElementById('sandbox-banner');
   if (banner) banner.style.display = S.sandbox ? 'flex' : 'none';
-  const sbItem = document.getElementById('sandbox-menu-item');
-  if (sbItem) sbItem.innerHTML = S.sandbox
-    ? '🟠 Sandbox: <b>ON</b> — klik. poistu'
-    : '🧪 Sandbox-tila';
+  // Sidebar bottom re-renders on next render() call
 }
 
 async function copyProdToSandbox() {
@@ -2309,18 +2817,8 @@ function closeLightbox() {
 }
 
 function toggleSearch() {
-  const bar = document.getElementById('search-bar');
   const inp = document.getElementById('search-input');
-  if (!bar) return;
-  const visible = bar.style.display !== 'none' && bar.style.display !== '';
-  if (visible) {
-    bar.style.display = 'none';
-    S.searchQuery = '';
-    render();
-  } else {
-    bar.style.display = 'flex';
-    inp && inp.focus();
-  }
+  if (inp) inp.focus();
 }
 
 function onSearch(e) {
@@ -2383,14 +2881,21 @@ function init() {
     showSignIn();
   }
 
-  // Keyboard shortcut: N = new item
+  // Keyboard shortcuts
   document.addEventListener('keydown', e => {
+    const inInput = ['INPUT','TEXTAREA'].includes(document.activeElement?.tagName);
     if (e.key === 'Escape') {
       closeLightbox();
+      if (inInput) document.activeElement.blur();
       return;
     }
-    if (e.key === 'n' && !e.ctrlKey && !e.metaKey &&
-        !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+    if (inInput || e.ctrlKey || e.metaKey) return;
+    if (e.key === '/') {
+      e.preventDefault();
+      document.getElementById('search-input')?.focus();
+      return;
+    }
+    if (e.key === 'n' || e.key === 'N') {
       openAdd();
     }
   });
